@@ -1,0 +1,28 @@
+## Backend
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.sqlite
+*.db
+backend/uploads/
+backend/static/        # frontend production build (Docker build üretir)
+
+## Frontend
+node_modules/
+dist/
+.vite/
+
+## Env / secrets
+.env
+.env.local
+*.local
+
+## IDE
+.vscode/
+.idea/
+.DS_Store
+
+## Logs
+*.log

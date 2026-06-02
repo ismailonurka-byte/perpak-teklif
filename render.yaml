@@ -1,0 +1,30 @@
+# Render Blueprint — tek Web Service (Docker)
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: perpak-teklif
+    runtime: docker
+    plan: free
+    region: frankfurt        # Avrupa için en yakın free region
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./perpak.db
+      - key: APP_NAME
+        value: Perpak Teklif (Demo)
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: 7
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: SMTP_ENABLED
+        value: "false"
+    healthCheckPath: /health
