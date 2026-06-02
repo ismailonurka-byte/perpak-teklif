@@ -17,7 +17,7 @@ python scripts/seed_master_data.py
 echo "[3/4] Admin kullanıcı..."
 python scripts/create_admin.py
 
-echo "[4/4] Demo kullanıcı: mehmetdogan..."
+echo "[4/5] Demo kullanıcı: mehmetdogan..."
 python -c "
 from app.core.security import hash_password
 from app.db.session import SessionLocal
@@ -39,6 +39,9 @@ else:
     print('  ℹ mehmetdogan zaten var')
 db.close()
 "
+
+echo "[5/5] Demo müşterileri (ABC vs.)..."
+python scripts/seed_demo_data.py
 
 echo "═══════════════════════════════════════════════════"
 echo "  uvicorn başlatılıyor (port: ${PORT:-8000})"
