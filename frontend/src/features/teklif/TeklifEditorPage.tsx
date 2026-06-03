@@ -173,7 +173,7 @@ export default function TeklifEditorPage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">
+            <h1 className="text-xl sm:text-2xl font-bold font-display text-slate-900">
               {isNew ? "Yeni Teklif" : teklif?.teklif_no}
             </h1>
             {!isNew && (
@@ -183,8 +183,8 @@ export default function TeklifEditorPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {!isNew && (
-            <button onClick={pdfIndir} className="btn-ghost border border-slate-300">
-              <FileDown size={16} className="mr-1" /> PDF
+            <button onClick={pdfIndir} className="btn-secondary">
+              <FileDown size={16} /> PDF
             </button>
           )}
           <button
@@ -197,16 +197,16 @@ export default function TeklifEditorPage() {
           {!isNew && durum === "TASLAK" && (
             <button
               onClick={() => kaydet.mutate("TEKLIF_VERILDI")}
-              className="btn bg-emerald-600 text-white hover:bg-emerald-700"
+              className="btn text-white bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-[0_8px_20px_-8px_rgba(16,185,129,0.5)]"
               disabled={kaydet.isPending}
             >
-              <Send size={16} className="mr-1" /> Teklif Ver
+              <Send size={16} /> Teklif Ver
             </button>
           )}
           {!isNew && durum === "KABUL" && (
             <button
               onClick={() => kaydet.mutate("SIPARIS")}
-              className="btn bg-violet-600 text-white hover:bg-violet-700"
+              className="btn text-white bg-gradient-to-b from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 shadow-[0_8px_20px_-8px_rgba(139,92,246,0.5)]"
               disabled={kaydet.isPending}
             >
               Siparişe Dönüştür →
@@ -282,8 +282,8 @@ export default function TeklifEditorPage() {
 
       {/* Kalemler tablosu */}
       <div className="card p-0 overflow-hidden mb-4">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h2 className="font-semibold">Satırlar ({kalemler.length})</h2>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+          <h2 className="font-semibold text-slate-900">Satırlar ({kalemler.length})</h2>
           <button
             onClick={() => { setEditingKalem(undefined); setDrawerOpen(true); }}
             className="btn-primary"
@@ -372,22 +372,20 @@ export default function TeklifEditorPage() {
       </div>
 
       {/* Toplamlar */}
-      <div className="card max-w-md ml-auto mb-4">
-        <div className="space-y-2 text-sm">
+      <div className="max-w-md ml-auto mb-4 rounded-2xl overflow-hidden shadow-card ring-1 ring-slate-200/70">
+        <div className="bg-white p-5 space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">Ara Toplam</span>
-            <span className="font-medium">{tl.format(araToplam)}</span>
+            <span className="font-semibold text-slate-800">{tl.format(araToplam)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">
-              KDV (%{Math.round(kdvOrani * 100)})
-            </span>
-            <span className="font-medium">{tl.format(kdvTutari)}</span>
+            <span className="text-slate-500">KDV (%{Math.round(kdvOrani * 100)})</span>
+            <span className="font-semibold text-slate-800">{tl.format(kdvTutari)}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t text-base">
-            <span className="font-semibold">Genel Toplam</span>
-            <span className="font-bold text-brand-700">{tl.format(genelToplam)}</span>
-          </div>
+        </div>
+        <div className="bg-brand-grad text-white px-5 py-4 flex justify-between items-center">
+          <span className="text-sm font-semibold text-brand-100/80">Genel Toplam</span>
+          <span className="text-xl font-bold font-display">{tl.format(genelToplam)}</span>
         </div>
       </div>
 

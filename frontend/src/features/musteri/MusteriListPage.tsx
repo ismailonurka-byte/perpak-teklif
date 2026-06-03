@@ -37,7 +37,7 @@ export default function MusteriListPage() {
     <div>
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold">Müşteriler</h1>
+          <h1 className="page-title">Müşteriler</h1>
           <p className="text-sm text-slate-500">{liste.length} kayıt</p>
         </div>
         <div className="flex gap-2">

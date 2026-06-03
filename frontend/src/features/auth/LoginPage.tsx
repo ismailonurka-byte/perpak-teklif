@@ -33,14 +33,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-700 to-brand-900 p-4">
-      <div className="w-full max-w-md card">
-        <div className="text-center mb-6">
-          <img src="/logo.jpeg" alt="PERPAK Ambalaj" className="h-16 w-auto mx-auto mb-2" />
-          <div className="text-xs text-slate-500">Teklif Yönetim Sistemi</div>
-        </div>
+    <div className="relative min-h-screen flex items-center justify-center bg-brand-grad p-4 overflow-hidden">
+      {/* Atmosferik arka plan */}
+      <div className="absolute inset-0 bg-grid-faint [background-size:38px_38px] opacity-[0.4] pointer-events-none" aria-hidden />
+      <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-accent-500/20 blur-3xl pointer-events-none" aria-hidden />
+      <div className="absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-brand-400/25 blur-3xl pointer-events-none" aria-hidden />
 
-        <form onSubmit={submit} className="space-y-4">
+      <div className="relative w-full max-w-md animate-scale-in">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevated ring-1 ring-white/40 p-7">
+          <div className="text-center mb-7">
+            <div className="inline-flex p-3 rounded-2xl bg-white ring-1 ring-slate-100 shadow-card mb-3">
+              <img src="/logo.jpeg" alt="PERPAK Ambalaj" className="h-14 w-auto" />
+            </div>
+            <h1 className="text-lg font-bold font-display text-slate-900">Teklif Yönetim Sistemi</h1>
+            <div className="text-xs text-slate-400 mt-0.5">Devam etmek için giriş yapın</div>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="label">Kullanıcı Adı</label>
             <div className="relative">
@@ -76,16 +85,21 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {hata && <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{hata}</div>}
+          {hata && (
+            <div className="text-sm text-rose-600 bg-rose-50 ring-1 ring-rose-100 rounded-xl p-3 animate-fade-in">
+              {hata}
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} className="btn-primary w-full">
+          <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
             {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
         </form>
-
-        <div className="mt-4 text-xs text-slate-400 text-center">
-          İlk giriş: <code className="font-mono">admin / admin123</code>
         </div>
+
+        <p className="text-center text-[11px] text-brand-100/50 mt-5">
+          © {new Date().getFullYear()} PERPAK Ambalaj · Tüm hakları saklıdır
+        </p>
       </div>
     </div>
   );

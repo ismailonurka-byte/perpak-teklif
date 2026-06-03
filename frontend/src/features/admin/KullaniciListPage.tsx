@@ -45,7 +45,7 @@ export default function KullaniciListPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Kullanıcılar</h1>
+          <h1 className="page-title">Kullanıcılar</h1>
           <p className="text-sm text-slate-500">{liste.length} kayıt</p>
         </div>
         <button className="btn-primary" onClick={() => setEditing("new")}>

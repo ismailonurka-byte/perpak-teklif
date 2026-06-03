@@ -105,7 +105,7 @@ export default function FiyatYonetimiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Birim Fiyat Yönetimi</h1>
+        <h1 className="page-title">Birim Fiyat Yönetimi</h1>
         <p className="text-sm text-slate-500">
           Excel'deki "HESAPLAMA VERİ DOSYASI" karşılığı. Buradaki değişiklikler **yeni teklifler**'i etkiler;
           eski teklifler kendi hesap snapshot'ında kalır.

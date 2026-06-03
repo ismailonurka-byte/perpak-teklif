@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,20 +6,98 @@
 
 @layer base {
   html, body, #root { height: 100%; }
-  body { @apply font-sans text-slate-800; }
+  body {
+    @apply font-sans text-slate-800 antialiased;
+    background-color: #F6F8FB;
+  }
+  h1, h2, h3 { @apply font-display tracking-tight; }
+
+  /* Zarif scrollbar */
+  * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+  *::-webkit-scrollbar { width: 9px; height: 9px; }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300/80;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+
+  ::selection { @apply bg-brand-700/15 text-brand-900; }
 }
 
 @layer components {
+  /* ---------- Butonlar ---------- */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors
-           focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold
+           transition-all duration-150 ease-out
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97];
   }
-  .btn-primary { @apply btn bg-brand-700 text-white hover:bg-brand-800; }
-  .btn-ghost   { @apply btn bg-transparent text-slate-700 hover:bg-slate-100; }
+  .btn-primary {
+    @apply btn text-white shadow-brand
+           bg-gradient-to-b from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-brand-700 ring-1 ring-inset ring-slate-200 shadow-card
+           hover:bg-slate-50 hover:ring-slate-300;
+  }
+  .btn-ghost   { @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
+  .btn-danger  {
+    @apply btn text-white bg-gradient-to-b from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700
+           shadow-[0_8px_20px_-8px_rgba(225,29,72,0.5)];
+  }
+  .btn-sm { @apply px-3 py-1.5 text-xs rounded-lg; }
+
+  /* ---------- Form ---------- */
   .input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
-           focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800
+           placeholder:text-slate-400 transition-shadow duration-150
+           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none;
   }
-  .label { @apply block text-xs font-medium text-slate-600 mb-1; }
-  .card  { @apply rounded-xl bg-white shadow-sm ring-1 ring-slate-200 p-5; }
+  .label { @apply block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5; }
+
+  /* ---------- Kart ---------- */
+  .card {
+    @apply rounded-2xl bg-white shadow-card ring-1 ring-slate-200/70 p-5;
+  }
+  .card-interactive {
+    @apply card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5
+           hover:ring-slate-300 cursor-pointer;
+  }
+
+  /* ---------- Rozet ---------- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ring-black/5;
+  }
+
+  /* ---------- Skeleton shimmer ---------- */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-slate-200/70;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+  /* ---------- Sayfa başlığı ---------- */
+  .page-title { @apply text-2xl font-bold text-slate-900 font-display; }
+}
+
+@layer utilities {
+  /* Staggered giriş — list/grid çocuklarına gecikmeli fade */
+  .stagger > * { animation: fade-in 0.5s cubic-bezier(0.21, 0.6, 0.35, 1) both; }
+  .stagger > *:nth-child(1) { animation-delay: 0.02s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.06s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.10s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.14s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.18s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.22s; }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }

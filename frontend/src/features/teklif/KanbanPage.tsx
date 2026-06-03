@@ -11,13 +11,13 @@ import { useToast } from "@/components/ui/Toast";
 import { DURUM_ETIKET, DURUM_RENGI, type TeklifDurum, type TeklifListItem } from "@/types";
 import { tl, gunFarki } from "@/lib/format";
 
-const KOLONLAR: { kod: TeklifDurum; ad: string }[] = [
-  { kod: "TASLAK", ad: "Taslak" },
-  { kod: "TEKLIF_VERILDI", ad: "Teklif Verildi" },
-  { kod: "BEKLEMEDE", ad: "Beklemede" },
-  { kod: "KABUL", ad: "Kabul" },
-  { kod: "SIPARIS", ad: "Sipariş" },
-  { kod: "RED", ad: "Red" },
+const KOLONLAR: { kod: TeklifDurum; ad: string; nokta: string }[] = [
+  { kod: "TASLAK", ad: "Taslak", nokta: "bg-slate-400" },
+  { kod: "TEKLIF_VERILDI", ad: "Teklif Verildi", nokta: "bg-blue-500" },
+  { kod: "BEKLEMEDE", ad: "Beklemede", nokta: "bg-amber-500" },
+  { kod: "KABUL", ad: "Kabul", nokta: "bg-emerald-500" },
+  { kod: "SIPARIS", ad: "Sipariş", nokta: "bg-violet-500" },
+  { kod: "RED", ad: "Red", nokta: "bg-rose-500" },
 ];
 
 export default function KanbanPage() {
@@ -49,43 +49,48 @@ export default function KanbanPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-2">Kanban</h1>
-      <p className="text-sm text-slate-500 mb-4">
+      <h1 className="page-title mb-1">Kanban</h1>
+      <p className="text-sm text-slate-500 mb-5">
         Tüm teklifler durum sütunlarında. Karttaki dropdown'la hızlı durum değiştir.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         {grupli.map((kol) => (
-          <div key={kol.kod} className="bg-slate-100 rounded-xl p-3 flex flex-col min-h-[300px]">
-            <div className="flex items-center justify-between mb-3">
-              <div className="font-semibold text-sm">{kol.ad}</div>
-              <span className="text-xs bg-white px-2 py-0.5 rounded-full font-medium text-slate-600">
+          <div key={kol.kod} className="bg-slate-100/70 ring-1 ring-slate-200/60 rounded-2xl p-3 flex flex-col min-h-[320px]">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div className="flex items-center gap-2 font-semibold text-sm text-slate-700">
+                <span className={`h-2 w-2 rounded-full ${kol.nokta}`} />
+                {kol.ad}
+              </div>
+              <span className="text-xs bg-white shadow-card px-2 py-0.5 rounded-full font-semibold text-slate-600">
                 {kol.items.length}
               </span>
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="space-y-2.5 flex-1">
               {kol.items.length === 0 && (
-                <div className="text-xs text-slate-400 italic">Boş</div>
+                <div className="grid place-items-center h-24 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
+                  Boş
+                </div>
               )}
               {kol.items.map((t) => {
                 const gun = gunFarki(t.son_aktivite_ts);
                 const eskimis = gun > 7 && ["TEKLIF_VERILDI", "BEKLEMEDE"].includes(t.durum);
                 return (
-                  <div key={t.id} className="bg-white rounded-lg p-3 shadow-sm border border-slate-200">
+                  <div key={t.id} className="bg-white rounded-xl p-3 shadow-card ring-1 ring-slate-200/70 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200">
                     <Link to={`/teklifler/${t.id}`} className="block">
-                      <div className="font-mono text-xs text-brand-700">{t.teklif_no}</div>
-                      <div className="font-medium text-sm mt-1 line-clamp-2">{t.firma_adi}</div>
+                      <div className="font-mono text-xs text-brand-600">{t.teklif_no}</div>
+                      <div className="font-semibold text-sm mt-1 line-clamp-2 text-slate-800">{t.firma_adi}</div>
                       <div className="text-xs text-slate-500 mt-1">{t.olusturan_ad}</div>
-                      <div className="text-sm font-medium mt-1">{tl.format(t.genel_toplam)}</div>
+                      <div className="text-sm font-bold text-slate-900 mt-1">{tl.format(t.genel_toplam)}</div>
                       <div className="flex items-center gap-1 text-xs mt-1">
                         {eskimis && <AlertTriangle size={12} className="text-amber-500" />}
-                        <span className={eskimis ? "text-amber-700 font-medium" : "text-slate-400"}>
+                        <span className={eskimis ? "text-amber-700 font-semibold" : "text-slate-400"}>
                           {gun === 0 ? "Bugün" : `${gun} gün`}
                         </span>
                       </div>
                     </Link>
                     <select
-                      className="mt-2 w-full text-xs border-slate-200 border rounded px-2 py-1 bg-slate-50"
+                      className="mt-2.5 w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-slate-50 font-medium text-slate-600 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 outline-none cursor-pointer"
                       value={t.durum}
                       onChange={(e) => durumDegistir.mutate({ id: t.id, durum: e.target.value as TeklifDurum })}
                     >

@@ -40,13 +40,15 @@ export default function TeklifListPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-2xl font-bold">Teklifler</h1>
-          <p className="text-sm text-slate-500">{data.length} kayıt</p>
+          <h1 className="page-title">Teklifler</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            <span className="font-semibold text-slate-700">{data.length}</span> kayıt listeleniyor
+          </p>
         </div>
         <button className="btn-primary" onClick={() => navigate("/teklifler/yeni")}>
-          <Plus size={16} className="mr-1" /> Yeni Teklif
+          <Plus size={16} /> Yeni Teklif
         </button>
       </div>
 
@@ -77,15 +79,24 @@ export default function TeklifListPage() {
 
       <div className="card p-0 overflow-hidden">
         {isLoading ? (
-          <div className="p-6 text-center text-slate-400">Yükleniyor...</div>
+          <div className="p-4 space-y-2.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton h-12 w-full" />
+            ))}
+          </div>
         ) : data.length === 0 ? (
-          <div className="p-10 text-center text-slate-400">Filtreye uyan teklif yok.</div>
+          <div className="p-14 text-center">
+            <div className="mx-auto h-12 w-12 rounded-2xl bg-slate-100 grid place-items-center text-slate-400 mb-3">
+              <Search size={22} />
+            </div>
+            <div className="text-sm text-slate-400">Filtreye uyan teklif yok.</div>
+          </div>
         ) : (
           <>
             {/* Desktop tablo */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
+                <thead className="bg-slate-50/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <tr>
                     <th className="text-left px-4 py-3">Teklif No</th>
                     <th className="text-left px-4 py-3">Müşteri</th>

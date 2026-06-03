@@ -197,6 +197,7 @@ function FieldRenderer({
   // ─── ILAVE_ISLEMLER — her bir ilave işlem için fiyat alanı ──────────
   if (alan.tip === "ilave_islemler") {
     const tum = master.baski_sonrasi_islem;
+    const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
     // Custom: değer = { kod: fiyat, ... }
     const detay: Record<string, number> = (value && typeof value === "object") ? value : {};
     return (
@@ -223,7 +224,7 @@ function FieldRenderer({
                   <input
                     type="number"
                     step="any"
-                    placeholder="TL/m²"
+                    placeholder={birim}
                     className="w-20 text-xs border border-slate-200 rounded px-1.5 py-0.5"
                     value={aktif ? (detay[islem.kod] || "") : ""}
                     onChange={(e) => onChange({ ...detay, [islem.kod]: Number(e.target.value || 0) })}

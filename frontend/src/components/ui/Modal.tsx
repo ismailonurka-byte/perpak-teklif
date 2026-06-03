@@ -26,18 +26,25 @@ export default function Modal({ open, onClose, title, children, size = "md", foo
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4 animate-fade-in"
+      onClick={onClose}
+    >
       <div
-        className={`relative w-full ${sizes[size]} max-h-[95vh] sm:max-h-[90vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col`}
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full ${sizes[size]} max-h-[95vh] sm:max-h-[90vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-elevated ring-1 ring-slate-200/60 flex flex-col animate-slide-up sm:animate-scale-in`}
       >
-        <div className="flex items-center justify-between border-b px-5 py-3">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X size={20} />
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <h3 className="text-lg font-semibold font-display text-slate-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            <X size={18} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="border-t px-5 py-3 bg-slate-50 rounded-b-2xl">{footer}</div>}
+        {footer && <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/70 rounded-b-2xl">{footer}</div>}
       </div>
     </div>
   );

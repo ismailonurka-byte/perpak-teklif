@@ -62,6 +62,10 @@ KOD_ADI: dict[str, str] = {
     "SHRINKLI_PALETLI": "Shrinkli Paletli",
     "PALETLI": "Paletli",
     "DOKME": "Dökme",
+    "LAK": "Lak",
+    "SIVAMA": "Sıvama",
+    "BASKILI": "Baskılı",
+    "YOK": "Yok",
 }
 
 
@@ -93,9 +97,9 @@ def _baski_metni(k) -> str:
         if sp.get("baski_turu"):
             parts.append(_human(sp["baski_turu"]))
     elif tip in ("KUTU_FLEKSO", "KOLI"):
-        # Koli baskısız da olabilir
-        baski_turu = sp.get("baski_turu") or ""
-        if baski_turu == "BASKISIZ":
+        # KOLİ yeni şemada baski_durum (BASKILI/BASKISIZ); flekso baski_turu olabilir.
+        baski = sp.get("baski_durum") or sp.get("baski_turu") or ""
+        if baski == "BASKISIZ":
             return "Baskısız"
         parts.append("Flekso")
 
@@ -108,8 +112,32 @@ def _baski_metni(k) -> str:
 def _diger_islemler(k) -> str:
     sp = k.spesifikasyon or {}
     items: list[str] = []
+
+    # ── Yeni şema: ilave_islemler = {kod: fiyat} (lak, sıvama vb.) ──
+    ilave = sp.get("ilave_islemler")
+    if isinstance(ilave, dict):
+        for kod, fiyat in ilave.items():
+            if fiyat not in (None, "", 0, 0.0):
+                items.append(_human(kod))
+
+    # ── OFSET kesim/yapıştırma ──
+    if sp.get("kesim_tl") not in (None, "", 0, 0.0):
+        items.append("Kesim")
+    if sp.get("yapistirma_tl_ad") not in (None, "", 0, 0.0):
+        items.append("Yapıştırma")
+
+    # ── Eklenti (Yapıştırma/Dikiş/Kilitli) ──
+    if sp.get("eklenti") and sp.get("eklenti") != "YOK":
+        items.append(_human(sp["eklenti"]))
+
+    # ── Dikiş — yeni: dikis_fiyati, eski: dikis_adedi ──
+    if sp.get("dikis_fiyati") not in (None, "", 0, 0.0):
+        items.append("Dikiş")
+    elif sp.get("dikis_adedi") and int(sp.get("dikis_adedi", 0)) > 0:
+        items.append(f"Dikiş ({sp['dikis_adedi']} ad.)")
+
+    # ── Geriye uyumluluk: eski şema anahtarları ──
     baski_sonrasi = sp.get("baski_sonrasi", []) or []
-    # baski_sonrasi içinde herhangi bir lak çeşidi varsa, lak_aktif'i mükerrer olarak ekleme
     has_lak_post = any("LAK" in x for x in baski_sonrasi)
     if sp.get("lak_aktif") and not has_lak_post:
         items.append("Lak")
@@ -117,13 +145,11 @@ def _diger_islemler(k) -> str:
         items.append("Sıvama")
     for x in baski_sonrasi:
         items.append(_human(x))
-    if sp.get("eklenti"):
-        items.append(_human(sp["eklenti"]))
-    if sp.get("dikis_adedi") and int(sp.get("dikis_adedi", 0)) > 0:
-        items.append(f"Dikiş ({sp['dikis_adedi']} ad.)")
-    if not items:
-        return "—"
-    return ", ".join(items)
+
+    # Mükerrerleri sırayı bozmadan temizle
+    seen: set[str] = set()
+    uniq = [x for x in items if not (x in seen or seen.add(x))]
+    return ", ".join(uniq) if uniq else "—"
 
 
 env.filters["tl"] = _tl

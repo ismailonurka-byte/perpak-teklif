@@ -40,8 +40,11 @@ else:
 db.close()
 "
 
-echo "[5/5] Demo müşterileri (ABC vs.)..."
+echo "[5/6] Demo müşterileri (ABC vs.)..."
 python scripts/seed_demo_data.py
+
+echo "[6/6] Örnek teklifler (Doc/ Excel referansları — birebir)..."
+python scripts/seed_ornek_teklifler.py
 
 echo "═══════════════════════════════════════════════════"
 echo "  uvicorn başlatılıyor (port: ${PORT:-8000})"

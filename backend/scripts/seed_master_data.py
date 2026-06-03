@@ -41,6 +41,9 @@ BASKI_TURU = [
 RENKLER = [
     ("BASKISIZ", "Baskısız", None),
     ("CMYK", "CMYK", None),
+    # CMYK proses renkleri — "renk_multi" CMYK otomatik doldurma bunları seçer (kritik #3)
+    ("CYAN", "Cyan", "#00AEEF"),
+    ("MAGENTA", "Magenta", "#EC008C"),
     ("SIYAH", "Siyah", "#111111"),
     ("KIRMIZI", "Kırmızı", "#D32F2F"),
     ("MAVI", "Mavi", "#1976D2"),
@@ -204,10 +207,13 @@ KUTU_OFSET_SEMA = {
             ],
         },
         {
-            # Lak/Sıvama checkbox'ları iptal — hepsi İlave İşlemler içinde (kritik #5, #6, #7)
-            "ad": "İlave İşlemler",
+            # Lak/Sıvama checkbox'ları iptal → İlave İşlemler içinde (kritik #5, #6, #7).
+            # Kesim (Excel L18=U11, tabaka başına düz TL) ve Yapıştırma (L19=V11×açınım) buraya geri eklendi.
+            "ad": "Kesim, Yapıştırma & İlave İşlemler",
             "alanlar": [
-                {"key": "ilave_islemler", "label": "İşlemler & Fiyatları (TL/m²)", "tip": "ilave_islemler"},
+                {"key": "kesim_tl", "label": "Kesim TL (tabaka başına)", "tip": "number"},
+                {"key": "yapistirma_tl_ad", "label": "Yapıştırma TL/adet", "tip": "number"},
+                {"key": "ilave_islemler", "label": "Lak / Sıvama vb. & Fiyatları", "tip": "ilave_islemler", "birim": "TL/m²"},
                 {"key": "eklenti", "label": "Eklenti", "tip": "lookup", "kaynak": "eklenti"},
             ],
         },
@@ -301,8 +307,8 @@ KOLI_SEMA = {
                 # Kritik #3: Dikiş Adedi → Dikiş Fiyatı
                 {"key": "dikis_fiyati", "label": "Dikiş Fiyatı (TL)", "tip": "number",
                  "aciklama": "Toplam dikiş ücreti — yapıştırma seçildiyse 0"},
-                # Kritik #5: İlave işlemler fiyatlı
-                {"key": "ilave_islemler", "label": "İlave İşlemler & Fiyatları", "tip": "ilave_islemler"},
+                # Kritik #5: İlave işlemler fiyatlı (koli'de koli başına düz TL)
+                {"key": "ilave_islemler", "label": "İlave İşlemler & Fiyatları", "tip": "ilave_islemler", "birim": "TL"},
             ],
         },
         {
