@@ -17,16 +17,22 @@ import DinamikForm from "./DinamikForm";
 // Maliyet kırılımı anahtarlarının Türkçe karşılıkları
 const DETAY_ETIKETI: Record<string, string> = {
   karton_tl: "Karton",
-  ondule_tl: "Ondüle",
+  ondule_tl: "Oluklu",     // Eski "Ondüle" alanı artık "Oluklu"
+  oluklu_tl: "Oluklu",
   baski_tl: "Baskı",
   lak_tl: "Lak",
   sivama_tl: "Sıvama",
   kesim_tl: "Kesim",
   yapistirma_tl: "Yapıştırma",
+  ilave_islemler_tl: "İlave İşlemler",
   levha_tl: "Levha",
   dikis_tl: "Dikiş",
   alt_toplam: "Alt Toplam",
-  montaj_kutu_adet: "Montaj Kutu Adedi",
+  tabaka_adet: "Tabaka Adedi",
+  acinim: "Açınım",
+  montaj_kutu_adet: "Toplam Üretim Adedi",
+  ek_gecis_adedi: "Ek Geçiş Adedi",
+  gecis_carpan_kullanilan: "Geçiş Çarpanı",
   kalip_gideri: "Kalıp Gideri",
   diger_gider: "Diğer Gider",
   klise_gideri: "Klişe Gideri",
@@ -36,7 +42,7 @@ const DETAY_ETIKETI: Record<string, string> = {
 };
 
 const ORAN_ANAHTARLAR = new Set(["kar_orani"]);
-const ADET_ANAHTARLAR = new Set(["montaj_kutu_adet", "siparis_miktari"]);
+const ADET_ANAHTARLAR = new Set(["montaj_kutu_adet", "siparis_miktari", "tabaka_adet", "acinim", "ek_gecis_adedi"]);
 
 function formatDetay(k: string, v: any): string {
   if (typeof v !== "number") return String(v);
@@ -65,6 +71,7 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
   const [detay, setDetay] = useState<Record<string, any>>(initial?.hesap_detayi ?? {});
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
+  const [aciklama, setAciklama] = useState<string>(initial?.notlar ?? "");
 
   useEffect(() => {
     if (open) {
@@ -77,6 +84,7 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
       setBirimMaliyet(null);
       setDetay(initial?.hesap_detayi ?? {});
       setHata(null);
+      setAciklama(initial?.notlar ?? "");
     }
   }, [open, initial]);
 
@@ -128,6 +136,7 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
       toplam,
       spesifikasyon: spec,
       hesap_detayi: detay,
+      notlar: aciklama || null,
     });
   };
 
@@ -221,6 +230,21 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
                 <label className="label">Satır Toplam</label>
                 <div className="input bg-slate-50 font-semibold">{tl.format(toplam)}</div>
               </div>
+            </div>
+            {/* Açıklama — sipariş formunda görünür, proforma'da gizli (kritik #17) */}
+            <div>
+              <label className="label">
+                Açıklama
+                <span className="ml-2 text-xs font-normal text-slate-400">
+                  (sadece sipariş formunda görünür, proformaya yazılmaz)
+                </span>
+              </label>
+              <textarea
+                className="input min-h-[60px]"
+                value={aciklama}
+                onChange={(e) => setAciklama(e.target.value)}
+                placeholder="ör: Müşteriye özel ölçü kontrolü yapılacak"
+              />
             </div>
             {yukleniyor && <div className="text-xs text-slate-400">Hesaplanıyor...</div>}
             {hata && <div className="text-sm text-rose-600 bg-rose-50 rounded-lg p-2">{hata}</div>}

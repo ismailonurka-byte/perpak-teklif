@@ -160,10 +160,13 @@ KUTU_OFSET_SEMA = {
                 {"key": "bicak_no", "label": "Bıçak No", "tip": "text"},
                 {"key": "tabaka_en", "label": "Tabaka EN (mm)", "tip": "number", "zorunlu": True},
                 {"key": "tabaka_boy", "label": "Tabaka BOY (mm)", "tip": "number", "zorunlu": True},
-                {"key": "acinim_en", "label": "Açınım EN (mm)", "tip": "number"},
-                {"key": "acinim_boy", "label": "Açınım BOY (mm)", "tip": "number"},
-                {"key": "kutu_adedi_per_tabaka", "label": "Tabaka Başı Kutu", "tip": "number", "zorunlu": True},
-                {"key": "tabaka_adedi", "label": "Tabaka Adedi", "tip": "number"},
+                # Açınım EN/BOY iptal — yerine tek "AÇINIM" alanı (manuel rakam = tabakadan çıkan kutu sayısı)
+                {"key": "acinim", "label": "Açınım (adet)", "tip": "number", "zorunlu": True,
+                 "aciklama": "Bir tabakadan çıkan kutu sayısı"},
+                {"key": "tabaka_adedi", "label": "Tabaka Adedi", "tip": "number", "zorunlu": True},
+                # Sipariş miktarı otomatik: tabaka_adedi × açınım
+                {"key": "siparis_miktari", "label": "Sipariş Miktarı", "tip": "auto",
+                 "formul": "siparis_miktari", "aciklama": "Tabaka Adedi × Açınım"},
             ],
         },
         {
@@ -172,7 +175,9 @@ KUTU_OFSET_SEMA = {
                 {"key": "karton_cinsi", "label": "Karton Cinsi", "tip": "lookup", "kaynak": "karton_cinsi"},
                 {"key": "gramaj", "label": "Gramaj", "tip": "lookup", "kaynak": "gramaj"},
                 {"key": "karton_m2_fiyat", "label": "Karton TL/m²", "tip": "number"},
-                {"key": "ondule_m2_fiyat", "label": "Ondüle TL/m²", "tip": "number"},
+                # Ondüle TL/m² yerine "Oluklu Cinsi" + fiyat (kritik #2)
+                {"key": "oluklu_cinsi", "label": "Oluklu Cinsi", "tip": "lookup", "kaynak": "oluklu_kalite"},
+                {"key": "oluklu_m2_fiyat", "label": "Oluklu TL/m²", "tip": "number"},
             ],
         },
         {
@@ -180,29 +185,38 @@ KUTU_OFSET_SEMA = {
             "alanlar": [
                 {"key": "baski_turu", "label": "Baskı Türü", "tip": "lookup", "kaynak": "baski_turu"},
                 {"key": "renk_sayisi", "label": "Renk Sayısı", "tip": "int", "min": 0, "max": 6},
-                {"key": "gecis_sayisi", "label": "Geçiş Sayısı", "tip": "int"},
-                {"key": "baski_kalip_tl", "label": "Baskı Kalıp TL", "tip": "number"},
+                # Renk Seçimi — CMYK seçilirse 4 renk aynı anda (kritik #3)
+                {"key": "renk_kodlari", "label": "Renk Seçimi", "tip": "renk_multi"},
+                {"key": "baski_kalip_tl", "label": "Baskı Kalıp TL", "tip": "number",
+                 "aciklama": "Kalıp gideri burada — Sevkiyat'ta tekrar yok"},
                 {"key": "boya_tl", "label": "Boya TL", "tip": "number"},
-                {"key": "baski_adedi", "label": "Baskı Adedi", "tip": "number"},
+                # Geçiş çarpanı: kullanıcı boş bırakırsa renk sayısına göre tablodan; manuel override edebilir
+                {"key": "gecis_carpan", "label": "Geçiş Çarpanı", "tip": "number",
+                 "aciklama": "Boş bırakılırsa renk sayısına göre otomatik (tablodan)"},
+                # Baskı Adedi otomatik = tabaka adedi (Excel: P11=B12)
+                {"key": "baski_adedi", "label": "Baskı Adedi", "tip": "auto",
+                 "formul": "baski_adedi", "aciklama": "Tabaka Adedi ile aynı"},
+                # Ek Geçiş Adedi otomatik (Excel: P8 = IF(P11>3000, P11-3000, 0))
+                {"key": "ek_gecis_adedi", "label": "Ek Geçiş Adedi", "tip": "auto",
+                 "formul": "ek_gecis", "aciklama": "3000 üstünde ek geçiş otomatik"},
             ],
         },
         {
-            "ad": "Baskı Sonrası",
+            # Lak/Sıvama checkbox'ları iptal — hepsi İlave İşlemler içinde (kritik #5, #6, #7)
+            "ad": "İlave İşlemler",
             "alanlar": [
-                {"key": "lak_aktif", "label": "Lak", "tip": "bool"},
-                {"key": "sivama_aktif", "label": "Sıvama", "tip": "bool"},
-                {"key": "baski_sonrasi", "label": "İlave İşlemler", "tip": "lookup_multi", "kaynak": "baski_sonrasi_islem"},
+                {"key": "ilave_islemler", "label": "İşlemler & Fiyatları (TL/m²)", "tip": "ilave_islemler"},
                 {"key": "eklenti", "label": "Eklenti", "tip": "lookup", "kaynak": "eklenti"},
             ],
         },
         {
+            # Kalıp Gideri buradan kaldırıldı (kritik #9) — Baskı bölümünde
             "ad": "Sevkiyat & Diğer",
             "alanlar": [
                 {"key": "ambalaj_sekli", "label": "Ambalaj Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
-                {"key": "kalip_gideri", "label": "Kalıp Gideri", "tip": "number"},
                 {"key": "diger_gider", "label": "Diğer Gider", "tip": "number"},
-                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "number", "varsayilan": 0.2},
+                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
             ],
         },
     ]
@@ -216,8 +230,10 @@ KUTU_FLEKSO_SEMA = {
                 {"key": "bicak_no", "label": "Bıçak No", "tip": "text"},
                 {"key": "levha_en", "label": "Levha EN (mm)", "tip": "number", "zorunlu": True},
                 {"key": "levha_boy", "label": "Levha BOY (mm)", "tip": "number", "zorunlu": True},
-                {"key": "kutu_adedi_per_tabaka", "label": "Tabaka Başı Kutu", "tip": "number", "zorunlu": True},
-                {"key": "tabaka_adedi", "label": "Tabaka Adedi", "tip": "number"},
+                {"key": "acinim", "label": "Açınım (adet)", "tip": "number", "zorunlu": True},
+                {"key": "tabaka_adedi", "label": "Tabaka Adedi", "tip": "number", "zorunlu": True},
+                {"key": "siparis_miktari", "label": "Sipariş Miktarı", "tip": "auto",
+                 "formul": "siparis_miktari"},
             ],
         },
         {
@@ -231,6 +247,7 @@ KUTU_FLEKSO_SEMA = {
             "ad": "Baskı & İşlemler",
             "alanlar": [
                 {"key": "renk_sayisi", "label": "Renk Sayısı", "tip": "int", "min": 0, "max": 6},
+                {"key": "renk_kodlari", "label": "Renk Seçimi", "tip": "renk_multi"},
                 {"key": "baski_kesim_tl", "label": "Baskı+Kesim TL", "tip": "number"},
                 {"key": "kesim_tl", "label": "Kesim TL", "tip": "number"},
                 {"key": "yapistirma_tl_ad", "label": "Yapıştırma TL/adet", "tip": "number"},
@@ -244,7 +261,7 @@ KUTU_FLEKSO_SEMA = {
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
                 {"key": "kalip_gideri", "label": "Kalıp Gideri", "tip": "number"},
                 {"key": "diger_gider", "label": "Diğer Gider", "tip": "number"},
-                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "number", "varsayilan": 0.2},
+                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
             ],
         },
     ]
@@ -273,10 +290,17 @@ KOLI_SEMA = {
         {
             "ad": "Baskı",
             "alanlar": [
-                {"key": "baski_turu", "label": "Baskı Türü", "tip": "lookup", "kaynak": "baski_turu"},
+                # Kritik #1: sadeleştir — baskili / baskisiz
+                {"key": "baski_durum", "label": "Baskı Durumu", "tip": "lookup", "kaynak": "baskili_baskisiz"},
+                # Kritik #2: Renk Sayısı + Baskı Renkleri
                 {"key": "renk_sayisi", "label": "Renk Sayısı", "tip": "int", "min": 0, "max": 6},
+                {"key": "renk_kodlari", "label": "Baskı Renkleri", "tip": "renk_multi"},
                 {"key": "eklenti", "label": "Eklenti (Dikiş/Yapıştırma)", "tip": "lookup", "kaynak": "eklenti"},
-                {"key": "dikis_adedi", "label": "Dikiş Adedi", "tip": "int"},
+                # Kritik #3: Dikiş Adedi → Dikiş Fiyatı
+                {"key": "dikis_fiyati", "label": "Dikiş Fiyatı (TL)", "tip": "number",
+                 "aciklama": "Toplam dikiş ücreti — yapıştırma seçildiyse 0"},
+                # Kritik #5: İlave işlemler fiyatlı
+                {"key": "ilave_islemler", "label": "İlave İşlemler & Fiyatları", "tip": "ilave_islemler"},
             ],
         },
         {
@@ -286,7 +310,7 @@ KOLI_SEMA = {
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
                 {"key": "birim_klise_gideri", "label": "Birim Klişe Gideri", "tip": "number"},
                 {"key": "birim_bicak_gideri", "label": "Birim Bıçak Gideri", "tip": "number"},
-                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "number", "varsayilan": 0.2},
+                {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
             ],
         },
     ]
