@@ -206,13 +206,16 @@ function FieldRenderer({
 
   // ─── ILAVE_ISLEMLER — her bir ilave işlem için fiyat alanı ──────────
   if (alan.tip === "ilave_islemler") {
-    const tum = master.baski_sonrasi_islem;
     const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
-    // Fiyat listesinden otomatik default (müdahaleye açık) — Lak & Sıvama
+    // Şemadaki "ekstra" satırlar (örn. Yapıştırma TL/adet) listeye eklenir
+    const ekstra: { kod: string; ad: string; birim?: string }[] = alan.ekstra || [];
+    const tum: { kod: string; ad: string; birim?: string }[] = [...master.baski_sonrasi_islem, ...ekstra];
+    // Fiyat listesinden otomatik default (müdahaleye açık) — Lak, Sıvama, Yapıştırma
     const bf = master.birim_fiyat || {};
     const OTO_FIYAT: Record<string, number> = {
       LAK: bf.lak_tl_m2 ?? 0,
       SIVAMA: bf.sivama_tl_m2 ?? 0,
+      YAPISTIRMA: bf.yapistirma_tl_ad ?? 0,
     };
     // Custom: değer = { kod: fiyat, ... }
     const detay: Record<string, number> = (value && typeof value === "object") ? value : {};
@@ -223,6 +226,7 @@ function FieldRenderer({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {tum.map((islem) => {
               const aktif = islem.kod in detay;
+              const phBirim = islem.birim || birim;
               return (
                 <div key={islem.kod} className="flex items-center gap-2">
                   <input
@@ -230,7 +234,7 @@ function FieldRenderer({
                     checked={aktif}
                     onChange={(e) => {
                       const yeni = { ...detay };
-                      // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama); sonra elle değiştirilebilir
+                      // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama/Yapıştırma); sonra elle değiştirilebilir
                       if (e.target.checked) yeni[islem.kod] = OTO_FIYAT[islem.kod] ?? 0;
                       else delete yeni[islem.kod];
                       onChange(yeni);
@@ -241,7 +245,7 @@ function FieldRenderer({
                   <input
                     type="number"
                     step="any"
-                    placeholder={birim}
+                    placeholder={phBirim}
                     className="w-20 text-xs border border-slate-200 rounded px-1.5 py-0.5"
                     value={aktif ? (detay[islem.kod] || "") : ""}
                     onChange={(e) => onChange({ ...detay, [islem.kod]: Number(e.target.value || 0) })}

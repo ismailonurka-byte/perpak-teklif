@@ -99,27 +99,31 @@ function FieldRenderer({ alan, value, tumDegerler, onChange, master, }) {
     }
     // ─── ILAVE_ISLEMLER — her bir ilave işlem için fiyat alanı ──────────
     if (alan.tip === "ilave_islemler") {
-        const tum = master.baski_sonrasi_islem;
         const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
-        // Fiyat listesinden otomatik default (müdahaleye açık) — Lak & Sıvama
+        // Şemadaki "ekstra" satırlar (örn. Yapıştırma TL/adet) listeye eklenir
+        const ekstra = alan.ekstra || [];
+        const tum = [...master.baski_sonrasi_islem, ...ekstra];
+        // Fiyat listesinden otomatik default (müdahaleye açık) — Lak, Sıvama, Yapıştırma
         const bf = master.birim_fiyat || {};
         const OTO_FIYAT = {
             LAK: bf.lak_tl_m2 ?? 0,
             SIVAMA: bf.sivama_tl_m2 ?? 0,
+            YAPISTIRMA: bf.yapistirma_tl_ad ?? 0,
         };
         // Custom: değer = { kod: fiyat, ... }
         const detay = (value && typeof value === "object") ? value : {};
         return (_jsxs("div", { className: "sm:col-span-2 lg:col-span-3", children: [label, _jsx("div", { className: "border border-slate-300 rounded-lg bg-white p-3", children: _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2", children: tum.map((islem) => {
                             const aktif = islem.kod in detay;
+                            const phBirim = islem.birim || birim;
                             return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "checkbox", checked: aktif, onChange: (e) => {
                                             const yeni = { ...detay };
-                                            // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama); sonra elle değiştirilebilir
+                                            // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama/Yapıştırma); sonra elle değiştirilebilir
                                             if (e.target.checked)
                                                 yeni[islem.kod] = OTO_FIYAT[islem.kod] ?? 0;
                                             else
                                                 delete yeni[islem.kod];
                                             onChange(yeni);
-                                        }, className: "shrink-0" }), _jsx("span", { className: "text-xs flex-1 truncate", title: islem.ad, children: islem.ad }), _jsx("input", { type: "number", step: "any", placeholder: birim, className: "w-20 text-xs border border-slate-200 rounded px-1.5 py-0.5", value: aktif ? (detay[islem.kod] || "") : "", onChange: (e) => onChange({ ...detay, [islem.kod]: Number(e.target.value || 0) }), disabled: !aktif })] }, islem.kod));
+                                        }, className: "shrink-0" }), _jsx("span", { className: "text-xs flex-1 truncate", title: islem.ad, children: islem.ad }), _jsx("input", { type: "number", step: "any", placeholder: phBirim, className: "w-20 text-xs border border-slate-200 rounded px-1.5 py-0.5", value: aktif ? (detay[islem.kod] || "") : "", onChange: (e) => onChange({ ...detay, [islem.kod]: Number(e.target.value || 0) }), disabled: !aktif })] }, islem.kod));
                         }) }) })] }));
     }
     // ─── LOOKUP_MULTI ─────────────────────────────────────────────────────

@@ -209,11 +209,14 @@ KUTU_OFSET_SEMA = {
         {
             # Lak/Sıvama checkbox'ları iptal → İlave İşlemler içinde (kritik #5, #6, #7).
             # Kesim (Excel L18=U11, tabaka başına düz TL) ve Yapıştırma (L19=V11×açınım) buraya geri eklendi.
-            "ad": "Kesim, Yapıştırma & İlave İşlemler",
+            "ad": "Kesim & İlave İşlemler",
             "alanlar": [
                 {"key": "kesim_tl", "label": "Kesim TL (tabaka başına)", "tip": "number"},
-                {"key": "yapistirma_tl_ad", "label": "Yapıştırma TL/adet", "tip": "number"},
-                {"key": "ilave_islemler", "label": "Lak / Sıvama vb. & Fiyatları", "tip": "ilave_islemler", "birim": "TL/m²"},
+                # Yapıştırma artık ayrı alan değil — İlave kutusunda "ekstra" satır (TL/adet, fiyatı
+                # listeden otomatik gelir, elle değişir). Lak/Sıvama TL/m², Yapıştırma TL/adet.
+                {"key": "ilave_islemler", "label": "Lak / Sıvama / Yapıştırma & Fiyatları",
+                 "tip": "ilave_islemler", "birim": "TL/m²",
+                 "ekstra": [{"kod": "YAPISTIRMA", "ad": "Yapıştırma", "birim": "TL/adet"}]},
                 {"key": "eklenti", "label": "Eklenti", "tip": "lookup", "kaynak": "eklenti"},
             ],
         },

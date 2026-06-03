@@ -65,7 +65,14 @@ def calc_kutu_ofset(spec: dict, db: Session):
     LAK_TL_M2        = D(spec.get("lak_tl_m2", 0))
     SIVAMA_TL_M2     = D(spec.get("sivama_tl_m2", 0))
     KESIM_TL         = D(spec.get("kesim_tl", 0))
-    YAPISTIRMA_TL_AD = D(spec.get("yapistirma_tl_ad", 0))
+
+    # Yapıştırma artık İlave İşlemler kutusundan (YAPISTIRMA anahtarı, TL/adet).
+    # Geriye uyumluluk: eski ayrı "yapistirma_tl_ad" alanı yedek olarak okunur.
+    _ilave_dict = spec.get("ilave_islemler") or {}
+    if not isinstance(_ilave_dict, dict):
+        _ilave_dict = {}
+    _yap_raw = _ilave_dict.get("YAPISTIRMA")
+    YAPISTIRMA_TL_AD = D(_yap_raw) if _yap_raw not in (None, "") else D(spec.get("yapistirma_tl_ad", 0))
 
     KALIP_GIDER = D(spec.get("kalip_gideri", 0))
     DIGER_GIDER = D(spec.get("diger_gider", 0))
@@ -84,13 +91,14 @@ def calc_kutu_ofset(spec: dict, db: Session):
     kesim  = KESIM_TL
     yapis  = YAPISTIRMA_TL_AD * ACINIM
 
-    # İlave işlemler — {kod: tl_m2} formatında. Hepsinin toplam TL/m²
+    # İlave işlemler — {kod: tl_m2} formatında (lak/sıvama vb.). Toplam TL/m²
     # tabaka boyutuyla çarpılıp tabaka maliyetine eklenir (Excel R11 mantığı).
-    ilave = Decimal("0")
-    ilave_dict = spec.get("ilave_islemler") or {}
-    if isinstance(ilave_dict, dict):
-        toplam_m2 = sum(D(v) for v in ilave_dict.values() if v not in (None, ""))
-        ilave = (EN * BOY * toplam_m2) / Decimal("1000000")
+    # YAPISTIRMA hariç tutulur — o adet-bazlıdır (yukarıda yapis olarak hesaplandı).
+    toplam_m2 = sum(
+        D(v) for k, v in _ilave_dict.items()
+        if k != "YAPISTIRMA" and v not in (None, "")
+    )
+    ilave = (EN * BOY * toplam_m2) / Decimal("1000000")
 
     alt_toplam = karton + oluklu + baski + lak + sivama + kesim + yapis + ilave
 
