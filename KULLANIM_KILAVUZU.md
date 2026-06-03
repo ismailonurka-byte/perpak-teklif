@@ -332,13 +332,15 @@ Burada **form alanları seçilen tipe göre kendiliğinden değişir**. Aşağı
 
 ##### 5A) Ofset Kutu için doldurulacaklar:
 
+> 💡 **Mavi zeminli alanlar otomatik hesaplanır** — elle giremezsiniz, diğer alanları doldurdukça kendiliğinden dolar.
+
 **Grup: Ürün Bilgisi**
 - **Bıçak No** (opsiyonel): Müşterinin daha önce kullanılmış kalıbının kodu varsa yazın (örn: "BK-1142"). Yeni kalıp ise boş bırakın.
 - **Tabaka EN (mm)** *: Üretimde kullanılacak ana tabakanın enini milimetre olarak yazın (örn: 700 = 70 cm).
 - **Tabaka BOY (mm)** *: Boyunu mm olarak yazın (örn: 1000).
-- **Açınım EN/BOY (mm)**: Ürünün açılmış halinin ölçüleri. (Bıçak dosyasından bakarsınız.)
-- **Tabaka Başı Kutu** *: Bir tabakadan kaç adet kutu çıkacak? Bıçak dizgisinde belli olur (örn: 12).
-- **Tabaka Adedi**: Toplam kaç tabaka kesilecek? (Sipariş miktarı / tabaka başı kutu)
+- **Açınım (adet)** *: Bir tabakadan kaç adet kutu çıkacağı — tek bir sayı (örn: 2). (Eski "Açınım EN/BOY" ve "Tabaka Başı Kutu" alanları kaldırıldı, yerine bu tek alan geldi.)
+- **Tabaka Adedi** *: Toplam kaç tabaka kesilecek?
+- **Sipariş Miktarı** (🔵 otomatik): Tabaka Adedi × Açınım — kendiliğinden hesaplanır.
 
 **Grup: Malzeme**
 - **Karton Cinsi**: Dropdown'dan seçin. Sık kullanılanlar:
@@ -347,48 +349,56 @@ Burada **form alanları seçilen tipe göre kendiliğinden değişir**. Aşağı
   - **Kroma**: Genel
 - **Gramaj**: 160, 180, 200, 250, 300, 350, 400, 450 g/m² seçeneklerinden ihtiyacı seçin. Kalın kutular için 350+.
 - **Karton TL/m²**: Güncel karton fiyatı (kağıt deposundan günlük). Örnek: 18,50
-- **Ondüle TL/m²**: Eğer çift duvarlı yapıyorsanız ondüle astar fiyatı. Yoksa 0 bırakın.
+- **Oluklu Cinsi**: Çift duvarlı (oluklu) yapıyorsanız dropdown'dan oluklu kaliteyi seçin. (Eski "Ondüle TL/m²" yerine geldi.)
+- **Oluklu TL/m²**: Seçtiğiniz oluklunun m² fiyatı. Oluklu yoksa boş/0 bırakın.
 
 **Grup: Baskı**
 - **Baskı Türü**: Roland 700 veya Roland 800. (Daha büyük tabaka için 800.)
 - **Renk Sayısı**: 0–6 arası sayı. CMYK 4 renktir, ekstra spot eklerseniz 5–6.
-- **Geçiş Sayısı**: 1 (tek geçiş, normal) veya 2 (çift geçiş, kaplama gerekirse).
-- **Baskı Kalıp TL**: Müşteriye kestiğiniz kalıp parası (örn: 850).
+- **Renk Seçimi**: Renk sayısı kadar rengi paletten seçin (CMYK + 4 renk seçilince Cyan/Magenta/Sarı/Siyah otomatik gelir). Proformada renk bilgisi olarak görünür.
+- **Baskı Kalıp TL**: Kalıp ücreti — kalıp gideri **burada** girilir (Sevkiyat'ta ayrıca yok).
 - **Boya TL**: Boya/mürekkep ek masraf varsa.
-- **Baskı Adedi**: Genelde sipariş miktarı ile aynı. Bilmiyorsanız tabaka adedi × kutu/tabaka.
+- **Geçiş Çarpanı** (opsiyonel): Boş bırakırsanız renk sayısına göre tablodan otomatik gelir; istisnai durumda elle yazıp değiştirebilirsiniz.
+- **Baskı Adedi** (🔵 otomatik): Tabaka Adedi ile aynı.
+- **Ek Geçiş Adedi** (🔵 otomatik): Baskı adedi 3000'in üstündeyse fark otomatik (3000'e kadar 0).
 
-**Grup: Baskı Sonrası**
-- **Lak** kutusu: Lak istiyorsanız işaretleyin → otomatik fiyat eklenir.
-- **Sıvama** kutusu: Sıvama istiyorsanız işaretleyin.
-- **İlave İşlemler**: Etiketlerden seçin (mat selefon, UV lak, gofre, pencere kesim vs.). Birden fazla seçilebilir.
+**Grup: Kesim, Yapıştırma & İlave İşlemler**
+- **Kesim TL (tabaka başına)**: Tabaka başına sabit kesim ücreti (örn: 2,25). Kesim yoksa boş bırakın.
+- **Yapıştırma TL/adet**: Kutu başına yapıştırma ücreti (örn: 0,85). Yoksa boş bırakın.
+- **Lak / Sıvama vb. & Fiyatları**: İstediğiniz işlemi (Lak, Sıvama, UV Lak, Mat Selefon, Gofre, Pencere Kesim…) işaretleyip yanına **TL/m²** fiyatını yazın — fiyatlar elle girilir, müdahaleye açıktır. (Eski Lak/Sıvama kutucukları kaldırıldı; hepsi burada.)
 - **Eklenti**: KILITLI / YAPISTIRMA / DIKIS / YOK
 
 **Grup: Sevkiyat & Diğer**
 - **Ambalaj Şekli**: Shrinkli mi, dökme mi, paletli mi?
 - **Grafik**: Kalıp var mı (Eski iş tekrarı), Yeni çalışma mı, PDF mevcut mu?
-- **Kalıp Gideri**: Yeni kalıp masrafı varsa toplam TL.
-- **Diğer Gider**: Tasarım, prova, vs.
-- **Kâr Oranı**: Varsayılan **0.20 (%20)**. İstediğinize ayarlayın (0.15 = %15, 0.30 = %30 vs.)
+- **Diğer Gider**: Tasarım, prova, vs. (Kalıp Gideri buradan kaldırıldı — Baskı bölümündeki "Baskı Kalıp TL" alanına girilir.)
+- **Kâr Oranı**: Yüzde alanıdır — **20** yazarsanız %20 demektir (varsayılan 20). 15 → %15, 30 → %30.
+
+> 📝 **Açıklama** (form en altında): Bu satıra yazdığınız not yalnızca **sipariş formunda** görünür, müşteriye giden **proformaya yazılmaz**. Üretim/iç notları için kullanın (örn: "Müşteriye özel ölçü kontrolü yapılacak").
 
 ##### 5B) Flekso Kutu için doldurulacaklar:
 
 Daha az alan vardır (flekso daha basit):
-- **Levha EN/BOY**, **Tabaka Başı Kutu**, **Tabaka Adedi**
+- **Levha EN/BOY**, **Açınım (adet)**, **Tabaka Adedi** (Açınım = tabakadan çıkan kutu sayısı, tek sayı)
+- **Sipariş Miktarı** (🔵 otomatik): Tabaka Adedi × Açınım
 - **Oluklu Kalite**: Dropdown'dan seçin (B120/S080/T090-B gibi kompozit kodlar).
 - **Safya TL/m²**: Birim levha fiyatı.
-- **Renk Sayısı, Baskı+Kesim TL, Kesim TL, Yapıştırma TL**: Ofset'e benzer ama daha sade.
-- **Sevkiyat / Kalıp Gideri / Kâr Oranı**: Aynı.
+- **Renk Sayısı** + **Renk Seçimi** (paletten renkler)
+- **Baskı+Kesim TL, Kesim TL, Yapıştırma TL/adet**: seçmediğiniz alan 0 sayılır (girilmemiş işlem maliyete eklenmez).
+- **Sevkiyat / Kalıp Gideri / Diğer Gider / Kâr Oranı**: Aynı.
 
 ##### 5C) Koli için doldurulacaklar:
 
 En sade form:
 - **Boy / En / Yükseklik (mm)** — koli iç ölçüleri
-- **Sipariş Miktarı** — kaç adet?
+- **Sipariş Miktarı** — kaç adet? (Alttaki "Adet" bu değere bağlanır.)
 - **Oluklu Kalite** *: Mutlaka seçin.
 - **Levha EN/BOY**, **Safya TL/m²**
-- **Baskı Türü, Renk Sayısı** (genelde 0–2)
+- **Baskı Durumu**: Baskılı / Baskısız (sadeleştirildi — eski "Baskı Türü" yerine).
+- **Renk Sayısı** + **Baskı Renkleri** (paletten renk seçimi)
 - **Eklenti**: YAPISTIRMA veya DIKIS
-- **Dikiş Adedi**: Dikiş yapacaksanız adet (her dikiş 2.25 TL).
+- **Dikiş Fiyatı (TL)**: Toplam dikiş ücreti (tek rakam). Yapıştırma seçtiyseniz 0. (Eski "Dikiş Adedi × birim" yerine doğrudan fiyat.)
+- **İlave İşlemler & Fiyatları**: İşlem seçip yanına **TL** (koli başına) fiyat yazın.
 - **Birim Klişe/Bıçak Gideri, Kâr Oranı**
 
 #### Adım 6 — Adet ve Birim Fiyat

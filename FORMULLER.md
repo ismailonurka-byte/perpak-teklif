@@ -56,7 +56,7 @@ Aşağıdaki kelimeler her ürün tipinde geçer. Önce bunları öğrenin.
 
 Kartonun kalınlık ölçüsü. **g/m²** birimi. 300 g/m² → 250 g/m²'den daha kalın.
 
-### Tabaka Başı Kutu (kısaca "kutu/tab")
+### Tabaka Başı Kutu (kısaca "kutu/tab") — formda artık "Açınım (adet)" alanı
 
 Bir tabakadan kaç kutu çıktığını söyleyen sayı. Yukarıdaki örnekte = 12.
 
@@ -96,35 +96,34 @@ Form size şunları soracak:
 #### Ürün Bilgisi
 - **Bıçak No** (zorunlu değil) — eski iş tekrarıysa kalıp numarası
 - **Tabaka EN ve BOY** (mm cinsinden — örnek: 700 × 1000)
-- **Açınım EN ve BOY** — ürünün açılmış ölçüleri
-- **Tabaka Başı Kutu** — 1 tabakadan kaç kutu (önemli!)
+- **Açınım (adet)** — 1 tabakadan kaç kutu çıkar, tek sayı (önemli!). *(Eski "Açınım EN/BOY" ve "Tabaka Başı Kutu" alanları kaldırıldı.)*
 - **Tabaka Adedi** — toplam kaç tabaka kesilecek
+- **Sipariş Miktarı** *(otomatik)* — Tabaka Adedi × Açınım
 
 #### Malzeme
 - **Karton Cinsi** (Kuşesiz Kroma, Bristol vs.)
 - **Gramaj** (160, 180, 200, …, 450)
 - **Karton TL/m²** — kağıt deposundan güncel fiyat
-- **Ondüle TL/m²** — çift duvarlı yapıyorsanız (yoksa 0)
+- **Oluklu Cinsi + Oluklu TL/m²** — çift duvarlı yapıyorsanız seçip fiyat yazın (yoksa boş). *(Eski "Ondüle TL/m²" yerine.)*
 
 #### Baskı
 - **Baskı Türü** (Roland 700 / 800)
 - **Renk Sayısı** (1–6)
-- **Geçiş Sayısı** (genelde 1; özel kaplamalarda 2)
-- **Baskı Kalıp TL** — kalıp ücreti (yeniyse müşteri öder)
+- **Renk Seçimi** — renk sayısı kadar rengi paletten seç (CMYK 4 renkte otomatik)
+- **Baskı Kalıp TL** — kalıp ücreti **burada** girilir (Sevkiyat'ta ayrıca yok)
 - **Boya TL** — özel mürekkep masrafı varsa
-- **Baskı Adedi** — kaç tabaka basılacak (genelde tabaka adedi ile aynı)
+- **Geçiş Çarpanı** *(boş → renk sayısına göre otomatik)* ve **Ek Geçiş Adedi** *(otomatik, 3000 üstü)*
+- **Baskı Adedi** *(otomatik = tabaka adedi)*
 
-#### Baskı Sonrası
-- **Lak** kutusu — varsa işaretle
-- **Sıvama** kutusu — varsa işaretle
-- **İlave İşlemler** — Mat Selefon, UV Lak, Gofre, Pencere Kesim vs. (birden fazla seçebilirsiniz)
+#### Kesim, Yapıştırma & İlave İşlemler
+- **Kesim TL (tabaka başına)** ve **Yapıştırma TL/adet** — girmediğiniz işlem 0 sayılır
+- **Lak / Sıvama vb.** — işaretleyip yanına **TL/m²** fiyatını elle yaz (müdahaleye açık)
 - **Eklenti** — Kilitli, Yapıştırma veya Dikiş
 
 #### Sevkiyat ve Diğer
 - **Ambalaj Şekli** — paletli, shrinkli vs.
 - **Grafik Durumu** — kalıp var mı, yeni mi?
-- **Kalıp Gideri** — yeni kalıp masrafı (tek seferlik)
-- **Diğer Gider** — prova, tasarım vs.
+- **Diğer Gider** — prova, tasarım vs. *(Kalıp Gideri kaldırıldı — Baskı'daki "Baskı Kalıp TL"ye girilir.)*
 - **Kâr Oranı** — varsayılan 0,20 (%20)
 
 ### 3.3 Hesaplama — Adım Adım
@@ -245,7 +244,7 @@ Cevap: 1,7837 × 1,25 = 2,23 TL/kutu × 10.000 = **22.300 TL** (yaklaşık 900 T
 
 Ofset'e benzer ama **daha az** alan var (çünkü flekso daha basit):
 
-- **Levha EN ve BOY**, **Tabaka Başı Kutu**, **Tabaka Adedi**
+- **Levha EN ve BOY**, **Açınım (adet)**, **Tabaka Adedi** — Sipariş Miktarı otomatik
 - **Oluklu Kalite** (B120/S080/T090 - B gibi kompozit kod)
 - **Safya TL/m²** — flekso levhanın m² fiyatı
 - **Baskı + Kesim TL** — flekso birim baskı parası (varsayılan 4 TL)
@@ -324,9 +323,9 @@ Bu tip en sade form:
 - **Oluklu Kalite** (zorunlu)
 - **Levha EN ve BOY** (açınımı, mm)
 - **Safya TL/m²**
-- **Baskı Türü** (Baskısız veya Flekso 1-2 renk)
+- **Baskı Durumu** (Baskılı / Baskısız) + **Renk Sayısı** / **Baskı Renkleri**
 - **Eklenti** (Yapıştırma veya Dikiş)
-- **Dikiş Adedi** (varsa — her dikiş 2,25 TL)
+- **Dikiş Fiyatı (TL)** — toplam dikiş ücreti (yapıştırma seçildiyse 0)
 - **Birim Klişe Gideri, Birim Bıçak Gideri** (varsa)
 - **Kâr Oranı**
 
@@ -336,7 +335,7 @@ Koli **en basit** tip — sadece levha + dikiş (varsa):
 
 ```
 ADIM 1: Levha maliyeti = (EN × BOY × Safya TL/m²) / 1 milyon
-ADIM 2: Dikiş maliyeti = 2,25 × Dikiş Adedi (yapıştırma seçtiyseniz 0)
+ADIM 2: Dikiş maliyeti = girilen Dikiş Fiyatı (toplam; yapıştırmada 0)
 ADIM 3: Birim toplam = Levha + Dikiş
 ADIM 4: Birim maliyet = Birim Toplam + Klişe Gideri + Bıçak Gideri
 ADIM 5: Birim satış = Birim Maliyet × (1 + Kâr)
