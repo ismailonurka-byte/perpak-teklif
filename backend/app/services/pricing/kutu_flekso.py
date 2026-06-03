@@ -63,6 +63,8 @@ def calc_kutu_flekso(spec: dict, db: Session):
     birim_satis = birim_maliyet * (Decimal("1") + KAR_ORANI)
     toplam_satis = birim_satis * montaj_kutu_adet
 
+    diger_gider_birim = (DIGER_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else Decimal("0")
+
     return PricingResult(
         birim_maliyet=birim_maliyet,
         birim_satis=birim_satis,
@@ -74,11 +76,8 @@ def calc_kutu_flekso(spec: dict, db: Session):
             "yapistirma_tl": float(yapis),
             "alt_toplam": float(alt_toplam),
             "tabaka_adet": float(TABAKA_ADET),
-            "acinim": float(ACINIM),
             "montaj_kutu_adet": float(montaj_kutu_adet),
-            "kalip_gideri": float(KALIP_GIDER),
-            "kalip_gideri_birim": float(KALIP_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else 0,
-            "diger_gider": float(DIGER_GIDER),
+            "diger_gider_birim": float(diger_gider_birim),
             "kar_orani": float(KAR_ORANI),
         },
     )

@@ -36,6 +36,7 @@ const DETAY_ETIKETI: Record<string, string> = {
   kalip_gideri: "Kalıp Gideri (Toplam)",
   kalip_gideri_birim: "Kalıp Gideri / Ürün Başına",
   diger_gider: "Diğer Gider",
+  diger_gider_birim: "Diğer Gider (Ürün Başına)",
   klise_gideri: "Klişe Gideri",
   bicak_gideri: "Bıçak Gideri",
   kar_orani: "Kâr Oranı",

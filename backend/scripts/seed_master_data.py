@@ -270,7 +270,7 @@ KUTU_FLEKSO_SEMA = {
             "alanlar": [
                 {"key": "ambalaj_sekli", "label": "Ambalaj Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
-                {"key": "kalip_gideri", "label": "Kalıp Gideri", "tip": "number"},
+                # Kalıp Gideri FLEKSO'da kaldırıldı (kullanıcı talebi)
                 {"key": "diger_gider", "label": "Diğer Gider", "tip": "number"},
                 {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
             ],

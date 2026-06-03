@@ -100,6 +100,21 @@ def calc_kutu_ofset(spec: dict, db: Session):
     )
     ilave = (EN * BOY * toplam_m2) / Decimal("1000000")
 
+    # İlave işlemleri maliyet kırılımına AYRI AYRI ekle (toplamadan) — Lak, Sıvama, Yapıştırma…
+    from app.db.models import BaskiSonrasi
+    _ad_map = {r.kod: r.ad for r in db.query(BaskiSonrasi).all()}
+    _ad_map["YAPISTIRMA"] = "Yapıştırma"
+    ilave_kalem_detay: dict[str, float] = {}
+    for kod, v in _ilave_dict.items():
+        dv = D(v)
+        if dv == 0:
+            continue
+        ad = _ad_map.get(kod, kod)
+        if kod == "YAPISTIRMA":
+            ilave_kalem_detay[ad] = float(dv * ACINIM)                       # adet-bazlı
+        else:
+            ilave_kalem_detay[ad] = float((EN * BOY * dv) / Decimal("1000000"))  # m²-bazlı
+
     alt_toplam = karton + oluklu + baski + lak + sivama + kesim + yapis + ilave
 
     # Excel: L22 = P11*L21 (= BASKI_ADET × ACINIM, ki BASKI_ADET = TABAKA_ADET)
@@ -116,6 +131,8 @@ def calc_kutu_ofset(spec: dict, db: Session):
     birim_satis = birim_maliyet * (Decimal("1") + KAR_ORANI)
     toplam_satis = birim_satis * montaj_kutu_adet
 
+    diger_gider_birim = (DIGER_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else Decimal("0")
+
     return PricingResult(
         birim_maliyet=birim_maliyet,
         birim_satis=birim_satis,
@@ -123,23 +140,14 @@ def calc_kutu_ofset(spec: dict, db: Session):
         detay={
             "karton_tl": float(karton),
             "oluklu_tl": float(oluklu),
-            # Geriye uyumluluk için eski "ondule_tl" anahtarı da bulunuyor
-            "ondule_tl": float(oluklu),
             "baski_tl": float(baski),
-            "lak_tl": float(lak),
-            "sivama_tl": float(sivama),
             "kesim_tl": float(kesim),
-            "yapistirma_tl": float(yapis),
-            "ilave_islemler_tl": float(ilave),
+            # her ilave işlem ayrı satır (Lak, Sıvama, Yapıştırma…)
+            **ilave_kalem_detay,
             "alt_toplam": float(alt_toplam),
             "tabaka_adet": float(TABAKA_ADET),
-            "acinim": float(ACINIM),
             "montaj_kutu_adet": float(montaj_kutu_adet),
-            "ek_gecis_adedi": float(GECIS_DELTA),
-            "gecis_carpan_kullanilan": float(GECIS_CARPAN_VAL),
-            "kalip_gideri": float(KALIP_GIDER),
-            "kalip_gideri_birim": float(KALIP_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else 0,
-            "diger_gider": float(DIGER_GIDER),
+            "diger_gider_birim": float(diger_gider_birim),
             "kar_orani": float(KAR_ORANI),
         },
     )
