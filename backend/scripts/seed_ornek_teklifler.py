@@ -95,64 +95,66 @@ def main():
 
         print("\n  ── Örnek Teklif Doğrulaması (Excel ↔ Sistem) ──")
         eklenen = 0
+        # Her örnek KENDİ try'ında ve KENDİ commit'inde — biri patlasa diğerleri etkilenmez
+        # (seed_demo_data.py / ABC ile aynı dayanıklı mantık).
         for orn in ORNEKLER:
-            # Firma (Excel'deki firma adlarıyla)
-            firma = db.query(Firma).filter(Firma.ad == orn["firma"]).first()
-            if not firma:
-                firma = Firma(ad=orn["firma"], notlar="Örnek teklif firması (Doc/ referansı).")
-                db.add(firma)
+            try:
+                # Idempotent — varsa atla
+                if db.query(Teklif).filter(Teklif.teklif_no == orn["teklif_no"]).first():
+                    print(f"  ℹ {orn['teklif_no']} zaten var")
+                    continue
+
+                # Firma (Excel'deki firma adlarıyla)
+                firma = db.query(Firma).filter(Firma.ad == orn["firma"]).first()
+                if not firma:
+                    firma = Firma(ad=orn["firma"], notlar="Örnek teklif firması (Doc/ referansı).")
+                    db.add(firma)
+                    db.flush()
+
+                # Hesaplama motoru — sistemin ürettiği değer
+                sonuc = calculate(orn["kalem_tipi"], orn["spec"], db)
+                birim_satis = q4(sonuc.birim_satis)
+                adet = int(Decimal(str(orn["spec"]["siparis_miktari"])))
+                kalem_toplam = q2(birim_satis * adet)
+
+                # Excel ↔ Sistem karşılaştırma çıktısı
+                em, es = Decimal(orn["excel_maliyet"]), Decimal(orn["excel_satis"])
+                sm, ss = q4(sonuc.birim_maliyet), birim_satis
+                ok = abs(sm - em) < Decimal("0.01") and abs(ss - es) < Decimal("0.01")
+                print(f"  {'✅' if ok else '❌'} {orn['teklif_no']:16} maliyet: Excel {em} / Sistem {sm}   "
+                      f"satış: Excel {es} / Sistem {ss}")
+
+                ara = kalem_toplam
+                kdv = q2(ara * Decimal("0.20"))
+                teklif = Teklif(
+                    teklif_no=orn["teklif_no"],
+                    firma_id=firma.id,
+                    olusturan_id=admin.id,
+                    atanan_id=admin.id,
+                    yetkili=orn["firma"],
+                    tarih=date.today(),
+                    vade_metni="30 gün",
+                    kdv_orani=Decimal("0.200"),
+                    ara_toplam=ara, kdv_tutari=kdv, genel_toplam=q2(ara + kdv),
+                    durum="TEKLIF_VERILDI",
+                    notlar="Doc/ Excel referansının birebir karşılığı — otomatik örnek.",
+                )
+                db.add(teklif)
                 db.flush()
+                db.add(TeklifKalem(
+                    teklif_id=teklif.id, sira_no=1,
+                    kalem_tipi=orn["kalem_tipi"], urun_ismi=orn["urun"],
+                    adet=adet, birim_fiyat=birim_satis, toplam=kalem_toplam,
+                    spesifikasyon=orn["spec"], hesap_detayi=sonuc.detay,
+                    notlar="Excel ile birebir doğrulanmış örnek kalem.",
+                ))
+                db.commit()  # her örnek tek tek commit
+                eklenen += 1
+            except Exception as e:
+                db.rollback()
+                print(f"  ⚠ {orn['teklif_no']} eklenemedi: {e}")
 
-            # Hesaplama motoru — sistemin ürettiği değer
-            sonuc = calculate(orn["kalem_tipi"], orn["spec"], db)
-            birim_satis = q4(sonuc.birim_satis)
-            adet = int(Decimal(str(orn["spec"]["siparis_miktari"])))
-            kalem_toplam = q2(birim_satis * adet)
-
-            # Excel ↔ Sistem karşılaştırma çıktısı
-            em, es = Decimal(orn["excel_maliyet"]), Decimal(orn["excel_satis"])
-            sm, ss = q4(sonuc.birim_maliyet), birim_satis
-            ok = abs(sm - em) < Decimal("0.01") and abs(ss - es) < Decimal("0.01")
-            isaret = "✅" if ok else "❌"
-            print(f"  {isaret} {orn['teklif_no']:16} maliyet: Excel {em} / Sistem {sm}   "
-                  f"satış: Excel {es} / Sistem {ss}")
-
-            # Idempotent — varsa güncelleme yapma, atla
-            if db.query(Teklif).filter(Teklif.teklif_no == orn["teklif_no"]).first():
-                continue
-
-            ara = kalem_toplam
-            kdv = q2(ara * Decimal("0.20"))
-            teklif = Teklif(
-                teklif_no=orn["teklif_no"],
-                firma_id=firma.id,
-                olusturan_id=admin.id,
-                atanan_id=admin.id,
-                yetkili=orn["firma"],
-                tarih=date.today(),
-                vade_metni="30 gün",
-                kdv_orani=Decimal("0.200"),
-                ara_toplam=ara, kdv_tutari=kdv, genel_toplam=q2(ara + kdv),
-                durum="TEKLIF_VERILDI",
-                notlar="Doc/ Excel referansının birebir karşılığı — otomatik örnek.",
-            )
-            db.add(teklif)
-            db.flush()
-            db.add(TeklifKalem(
-                teklif_id=teklif.id, sira_no=1,
-                kalem_tipi=orn["kalem_tipi"], urun_ismi=orn["urun"],
-                adet=adet, birim_fiyat=birim_satis, toplam=kalem_toplam,
-                spesifikasyon=orn["spec"], hesap_detayi=sonuc.detay,
-                notlar="Excel ile birebir doğrulanmış örnek kalem.",
-            ))
-            eklenen += 1
-
-        db.commit()
         print(f"  ✅ Örnek teklif seed bitti ({eklenen} yeni teklif)\n")
-    except Exception as e:
-        db.rollback()
-        print(f"  ❌ Örnek teklif hatası: {e}")
-        raise
     finally:
         db.close()
 
