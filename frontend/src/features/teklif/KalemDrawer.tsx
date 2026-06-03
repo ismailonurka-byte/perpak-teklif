@@ -33,7 +33,8 @@ const DETAY_ETIKETI: Record<string, string> = {
   montaj_kutu_adet: "Toplam Üretim Adedi",
   ek_gecis_adedi: "Ek Geçiş Adedi",
   gecis_carpan_kullanilan: "Geçiş Çarpanı",
-  kalip_gideri: "Kalıp Gideri",
+  kalip_gideri: "Kalıp Gideri (Toplam)",
+  kalip_gideri_birim: "Kalıp Gideri / Ürün Başına",
   diger_gider: "Diğer Gider",
   klise_gideri: "Klişe Gideri",
   bicak_gideri: "Bıçak Gideri",
@@ -93,6 +94,17 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
     [master, kalemTipi]
   );
 
+  // Adet alanını şemadaki siparis_miktari ile bağla (kritik #11, #4)
+  // - Şemada `siparis_miktari` varsa onu kullan
+  // - Şemada `auto` tipindeki siparis_miktari = tabaka_adedi × açınım'dan otomatik gelir
+  // - Aksi halde kullanıcı kendi "Adet" alanından girer
+  useEffect(() => {
+    const specMiktar = Number(spec.siparis_miktari ?? 0);
+    if (specMiktar > 0 && specMiktar !== adet) {
+      setAdet(specMiktar);
+    }
+  }, [spec.siparis_miktari]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   // Debounced canlı hesap
   useEffect(() => {
     if (!kalemTipi || !tipBilgi) return;
@@ -102,7 +114,7 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
       try {
         const { data } = await api.post("/hesaplama/preview", {
           kalem_tipi: kalemTipi,
-          spesifikasyon: { ...spec, siparis_miktari: adet },
+          spesifikasyon: { ...spec, siparis_miktari: adet || spec.siparis_miktari },
         });
         setBirimMaliyet(data.birim_maliyet);
         setOnerilen(data.birim_satis);

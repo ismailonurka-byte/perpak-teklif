@@ -130,6 +130,7 @@ def calc_kutu_ofset(spec: dict, db: Session):
             "ek_gecis_adedi": float(GECIS_DELTA),
             "gecis_carpan_kullanilan": float(GECIS_CARPAN_VAL),
             "kalip_gideri": float(KALIP_GIDER),
+            "kalip_gideri_birim": float(KALIP_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else 0,
             "diger_gider": float(DIGER_GIDER),
             "kar_orani": float(KAR_ORANI),
         },

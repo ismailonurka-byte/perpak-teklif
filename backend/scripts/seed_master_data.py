@@ -64,6 +64,8 @@ RENKLER = [
 
 BASKI_SONRASI = [
     ("YOK", "Yok"),
+    ("LAK", "Lak"),
+    ("SIVAMA", "Sıvama"),
     ("DISPERSIYON_LAK", "Dispersiyon Lak"),
     ("UV_LAK", "UV Lak"),
     ("PARLAK_SELEFON", "Parlak Selefon"),

@@ -77,6 +77,7 @@ def calc_kutu_flekso(spec: dict, db: Session):
             "acinim": float(ACINIM),
             "montaj_kutu_adet": float(montaj_kutu_adet),
             "kalip_gideri": float(KALIP_GIDER),
+            "kalip_gideri_birim": float(KALIP_GIDER / montaj_kutu_adet) if montaj_kutu_adet > 0 else 0,
             "diger_gider": float(DIGER_GIDER),
             "kar_orani": float(KAR_ORANI),
         },
