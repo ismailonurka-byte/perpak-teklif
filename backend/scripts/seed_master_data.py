@@ -290,8 +290,11 @@ KOLI_SEMA = {
             "ad": "Malzeme",
             "alanlar": [
                 {"key": "oluklu_kalite", "label": "Oluklu Kalite", "tip": "lookup", "kaynak": "oluklu_kalite", "zorunlu": True},
-                {"key": "levha_en", "label": "Levha EN (mm)", "tip": "number", "zorunlu": True},
-                {"key": "levha_boy", "label": "Levha BOY (mm)", "tip": "number", "zorunlu": True},
+                # Levha EN/BOY artık otomatik (koli ölçülerinden formülle)
+                {"key": "levha_en", "label": "Levha EN (mm)", "tip": "auto", "formul": "koli_levha_en",
+                 "aciklama": "Koli En + Yükseklik + 6"},
+                {"key": "levha_boy", "label": "Levha BOY (mm)", "tip": "auto", "formul": "koli_levha_boy",
+                 "aciklama": "(Koli En + Koli Boy) × 2 + 30"},
                 {"key": "safya_m2_fiyat", "label": "Safya TL/m²", "tip": "number"},
             ],
         },
@@ -307,8 +310,8 @@ KOLI_SEMA = {
                 # Kritik #3: Dikiş Adedi → Dikiş Fiyatı
                 {"key": "dikis_fiyati", "label": "Dikiş Fiyatı (TL)", "tip": "number",
                  "aciklama": "Toplam dikiş ücreti — yapıştırma seçildiyse 0"},
-                # Kritik #5: İlave işlemler fiyatlı (koli'de koli başına düz TL)
-                {"key": "ilave_islemler", "label": "İlave İşlemler & Fiyatları", "tip": "ilave_islemler", "birim": "TL"},
+                # Not: İlave İşlemler (lak/sıvama/selefon vb.) KOLİ'de kullanılmaz — kaldırıldı.
+                # OFSET'te duruyor. calc_koli yine de eski kayıtlarda ilave_islemler'i okur (0 ise etkisiz).
             ],
         },
         {

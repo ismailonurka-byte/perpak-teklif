@@ -42,6 +42,18 @@ function FieldRenderer({ alan, value, tumDegerler, onChange, master, }) {
             const ac = Number(tumDegerler.acinim ?? 0);
             computed = ac > 0 ? String(Math.ceil(sm / ac)) : "";
         }
+        else if (alan.formul === "koli_levha_en") {
+            // KOLİ Levha EN = Koli En + Koli Yükseklik + 6
+            const en = Number(tumDegerler.koli_en ?? 0);
+            const y = Number(tumDegerler.koli_yukseklik ?? 0);
+            computed = en > 0 && y > 0 ? String(en + y + 6) : "";
+        }
+        else if (alan.formul === "koli_levha_boy") {
+            // KOLİ Levha BOY = (Koli En + Koli Boy) × 2 + 30
+            const en = Number(tumDegerler.koli_en ?? 0);
+            const boy = Number(tumDegerler.koli_boy ?? 0);
+            computed = en > 0 && boy > 0 ? String((en + boy) * 2 + 30) : "";
+        }
         // Otomatik gelen değer state'e de yazılsın ki backend'e gönderilsin
         if (computed && computed !== String(value ?? "")) {
             setTimeout(() => onChange(Number(computed)), 0);
@@ -89,14 +101,21 @@ function FieldRenderer({ alan, value, tumDegerler, onChange, master, }) {
     if (alan.tip === "ilave_islemler") {
         const tum = master.baski_sonrasi_islem;
         const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
+        // Fiyat listesinden otomatik default (müdahaleye açık) — Lak & Sıvama
+        const bf = master.birim_fiyat || {};
+        const OTO_FIYAT = {
+            LAK: bf.lak_tl_m2 ?? 0,
+            SIVAMA: bf.sivama_tl_m2 ?? 0,
+        };
         // Custom: değer = { kod: fiyat, ... }
         const detay = (value && typeof value === "object") ? value : {};
         return (_jsxs("div", { className: "sm:col-span-2 lg:col-span-3", children: [label, _jsx("div", { className: "border border-slate-300 rounded-lg bg-white p-3", children: _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2", children: tum.map((islem) => {
                             const aktif = islem.kod in detay;
                             return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("input", { type: "checkbox", checked: aktif, onChange: (e) => {
                                             const yeni = { ...detay };
+                                            // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama); sonra elle değiştirilebilir
                                             if (e.target.checked)
-                                                yeni[islem.kod] = 0;
+                                                yeni[islem.kod] = OTO_FIYAT[islem.kod] ?? 0;
                                             else
                                                 delete yeni[islem.kod];
                                             onChange(yeni);

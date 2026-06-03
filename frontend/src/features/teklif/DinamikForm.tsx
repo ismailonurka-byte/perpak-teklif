@@ -79,6 +79,16 @@ function FieldRenderer({
       const sm = Number(tumDegerler.siparis_miktari ?? 0);
       const ac = Number(tumDegerler.acinim ?? 0);
       computed = ac > 0 ? String(Math.ceil(sm / ac)) : "";
+    } else if (alan.formul === "koli_levha_en") {
+      // KOLİ Levha EN = Koli En + Koli Yükseklik + 6
+      const en = Number(tumDegerler.koli_en ?? 0);
+      const y = Number(tumDegerler.koli_yukseklik ?? 0);
+      computed = en > 0 && y > 0 ? String(en + y + 6) : "";
+    } else if (alan.formul === "koli_levha_boy") {
+      // KOLİ Levha BOY = (Koli En + Koli Boy) × 2 + 30
+      const en = Number(tumDegerler.koli_en ?? 0);
+      const boy = Number(tumDegerler.koli_boy ?? 0);
+      computed = en > 0 && boy > 0 ? String((en + boy) * 2 + 30) : "";
     }
     // Otomatik gelen değer state'e de yazılsın ki backend'e gönderilsin
     if (computed && computed !== String(value ?? "")) {
@@ -198,6 +208,12 @@ function FieldRenderer({
   if (alan.tip === "ilave_islemler") {
     const tum = master.baski_sonrasi_islem;
     const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
+    // Fiyat listesinden otomatik default (müdahaleye açık) — Lak & Sıvama
+    const bf = master.birim_fiyat || {};
+    const OTO_FIYAT: Record<string, number> = {
+      LAK: bf.lak_tl_m2 ?? 0,
+      SIVAMA: bf.sivama_tl_m2 ?? 0,
+    };
     // Custom: değer = { kod: fiyat, ... }
     const detay: Record<string, number> = (value && typeof value === "object") ? value : {};
     return (
@@ -214,7 +230,8 @@ function FieldRenderer({
                     checked={aktif}
                     onChange={(e) => {
                       const yeni = { ...detay };
-                      if (e.target.checked) yeni[islem.kod] = 0;
+                      // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama); sonra elle değiştirilebilir
+                      if (e.target.checked) yeni[islem.kod] = OTO_FIYAT[islem.kod] ?? 0;
                       else delete yeni[islem.kod];
                       onChange(yeni);
                     }}

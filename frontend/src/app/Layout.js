@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 const navItems = [
     { to: "/", icon: LayoutDashboard, label: "Panel", grup: "Genel" },
     { to: "/teklifler", icon: FileText, label: "Teklifler", grup: "Genel" },
-    { to: "/kanban", icon: Kanban, label: "Kanban", adminOnly: true, grup: "Genel" },
+    { to: "/kanban", icon: Kanban, label: "Kanban", grup: "Genel" },
     { to: "/musteriler", icon: Users, label: "Müşteriler", grup: "Genel" },
     { to: "/raporlar", icon: BarChart3, label: "Raporlar", grup: "Genel" },
     { to: "/kullanicilar", icon: UserCog, label: "Kullanıcılar", adminOnly: true, grup: "Yönetim" },

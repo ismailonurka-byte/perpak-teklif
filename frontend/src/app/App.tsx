@@ -37,7 +37,7 @@ export default function App() {
           <Route path="teklifler" element={<TeklifListPage />} />
           <Route path="teklifler/yeni" element={<TeklifEditorPage />} />
           <Route path="teklifler/:id" element={<TeklifEditorPage />} />
-          <Route path="kanban" element={<RequireAdmin><KanbanPage /></RequireAdmin>} />
+          <Route path="kanban" element={<KanbanPage />} />
           <Route path="musteriler" element={<MusteriListPage />} />
           <Route path="raporlar" element={<RaporlarPage />} />
           <Route path="kullanicilar" element={<RequireAdmin><KullaniciListPage /></RequireAdmin>} />

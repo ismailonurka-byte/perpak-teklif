@@ -3,8 +3,8 @@ from fastapi import APIRouter
 
 from app.core.deps import CurrentUser, DbSession
 from app.db.models import (
-    AmbalajSekli, BaskiSonrasi, BaskiTuru, Eklenti, GrafikDurumu, Gramaj,
-    KalemTipi, KartonCinsi, OlukluKalite, Renk,
+    AmbalajSekli, BaskiSonrasi, BaskiTuru, BirimFiyatGenel, Eklenti, GrafikDurumu,
+    Gramaj, KalemTipi, KartonCinsi, OlukluKalite, Renk,
 )
 
 router = APIRouter()
@@ -60,4 +60,23 @@ def hepsi(db: DbSession, _: CurrentUser):
             }
             for r in db.query(KalemTipi).filter_by(aktif=True).order_by(KalemTipi.sira).all()
         ],
+        # Birim fiyat listesi — ilave işlemlerde (lak/sıvama) otomatik default için.
+        # Tüm rollere açık (sadece okuma); fiyat DÜZENLEME hâlâ admin'e özel (/fiyat).
+        "birim_fiyat": _birim_fiyat(db),
+    }
+
+
+def _birim_fiyat(db) -> dict:
+    row = db.query(BirimFiyatGenel).filter(BirimFiyatGenel.id == 1).first()
+    if not row:
+        return {}
+    return {
+        "lak_tl_m2": float(row.lak_tl_m2),
+        "sivama_tl_m2": float(row.sivama_tl_m2),
+        "kesim_tl": float(row.kesim_tl),
+        "yapistirma_tl_ad": float(row.yapistirma_tl_ad),
+        "flekso_baski_kesim_tl": float(row.flekso_baski_kesim_tl),
+        "flekso_kesim_tl": float(row.flekso_kesim_tl),
+        "flekso_yapistirma_tl_ad": float(row.flekso_yapistirma_tl_ad),
+        "koli_dikis_birim_tl": float(row.koli_dikis_birim_tl),
     }

@@ -70,6 +70,7 @@ export type MasterData = {
   ambalaj_sekli: { kod: string; ad: string }[];
   grafik_durumu: { kod: string; ad: string }[];
   kalem_tipi: KalemTipi[];
+  birim_fiyat?: Record<string, number>;
 };
 
 export type TeklifKalem = {
