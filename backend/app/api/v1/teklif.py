@@ -1,4 +1,5 @@
 """Teklif CRUD + polimorfik kalem yönetimi + durum akışı."""
+import logging
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
@@ -15,6 +16,7 @@ from app.schemas.teklif import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _gen_teklif_no(db) -> str:
@@ -269,15 +271,12 @@ def durum_log(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
 
 @router.get("/{teklif_id}/pdf")
 def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
-    from app.services.pdf import render_proforma_pdf
+    from app.services.pdf import render_proforma_pdf_isolated
 
+    # Yetki/varlık kontrolü için hafif yükleme (WeasyPrint burada yüklenmez).
     t = (
         db.query(Teklif)
-        .options(
-            joinedload(Teklif.firma),
-            joinedload(Teklif.olusturan),
-            joinedload(Teklif.kalemler),
-        )
+        .options(joinedload(Teklif.olusturan))
         .filter(Teklif.id == teklif_id)
         .first()
     )
@@ -286,11 +285,18 @@ def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
     if user.rol == "SATIS" and t.olusturan_id != user.id and t.atanan_id != user.id:
         raise HTTPException(status_code=403, detail="Erişim yetkiniz yok")
 
-    pdf_bytes = render_proforma_pdf(t)
+    teklif_no = t.teklif_no
+    # PDF'i AYRI süreçte üret — bellek (Render free 512 MB) izole kalsın.
+    try:
+        pdf_bytes = render_proforma_pdf_isolated(teklif_id)
+    except Exception as e:  # noqa: BLE001 — gerçek sebebi loga ve istemciye taşı
+        logger.exception("PDF üretimi başarısız (teklif_id=%s)", teklif_id)
+        raise HTTPException(status_code=500, detail=f"PDF üretilemedi: {e}")
+
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{t.teklif_no}.pdf"'},
+        headers={"Content-Disposition": f'inline; filename="{teklif_no}.pdf"'},
     )
 
 

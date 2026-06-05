@@ -133,15 +133,25 @@ export default function TeklifEditorPage() {
 
   const pdfIndir = async () => {
     try {
-      const res = await api.get(`/teklif/${id}/pdf`, { responseType: "blob" });
+      const res = await api.get(`/teklif/${id}/pdf`, { responseType: "blob", timeout: 90_000 });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");
       a.href = url;
       a.download = `${teklif?.teklif_no}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      toast("err", "PDF üretilemedi");
+    } catch (e: any) {
+      let msg = "PDF üretilemedi";
+      try {
+        const blob = e?.response?.data;
+        if (blob instanceof Blob) {
+          const j = JSON.parse(await blob.text());
+          if (j?.detail) msg = String(j.detail);
+        }
+      } catch {
+        /* hata gövdesi okunamadı — genel mesaj kalsın */
+      }
+      toast("err", msg);
     }
   };
 
