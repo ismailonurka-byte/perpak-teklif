@@ -9,7 +9,10 @@ passlib==1.7.4
 bcrypt<4.1
 python-multipart==0.0.12
 email-validator==2.2.0
-weasyprint==62.3
+# WeasyPrint ve pydyf BİRLİKTE pinli olmalı — uyumsuz pydyf "super has no attribute
+# transform" hatası verir. Bu ikili local'de doğrulanmış çalışan kombinasyon.
+weasyprint==68.1
+pydyf==0.12.1
 jinja2==3.1.4
 openpyxl==3.1.5
 httpx==0.27.2
