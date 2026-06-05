@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Edit, Building2 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -33,5 +33,28 @@ export default function MusteriListPage() {
 function MusteriForm({ firma, onClose, onSave, saving, }) {
     const [f, setF] = useState(firma ?? { ad: "", yetkili: "", telefon: "", email: "", adres: "", vergi_no: "", vergi_dairesi: "", notlar: "" });
     const upd = (k, v) => setF((p) => ({ ...p, [k]: v }));
-    return (_jsx(Modal, { open: true, onClose: onClose, title: firma ? "Müşteri Düzenle" : "Yeni Müşteri", size: "md", footer: _jsxs("div", { className: "flex justify-end gap-2", children: [_jsx("button", { className: "btn-ghost", onClick: onClose, children: "\u0130ptal" }), _jsx("button", { className: "btn-primary", disabled: !f.ad || saving, onClick: () => onSave(f), children: saving ? "Kaydediliyor..." : "Kaydet" })] }), children: _jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3", children: [_jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Firma Ad\u0131 *" }), _jsx("input", { className: "input", value: f.ad ?? "", onChange: (e) => upd("ad", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Yetkili" }), _jsx("input", { className: "input", value: f.yetkili ?? "", onChange: (e) => upd("yetkili", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Telefon" }), _jsx("input", { className: "input", value: f.telefon ?? "", onChange: (e) => upd("telefon", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "E-posta" }), _jsx("input", { className: "input", type: "email", value: f.email ?? "", onChange: (e) => upd("email", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Vergi No" }), _jsx("input", { className: "input", value: f.vergi_no ?? "", onChange: (e) => upd("vergi_no", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Vergi Dairesi" }), _jsx("input", { className: "input", value: f.vergi_dairesi ?? "", onChange: (e) => upd("vergi_dairesi", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Adres" }), _jsx("textarea", { className: "input min-h-[70px]", value: f.adres ?? "", onChange: (e) => upd("adres", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Notlar" }), _jsx("textarea", { className: "input min-h-[60px]", value: f.notlar ?? "", onChange: (e) => upd("notlar", e.target.value) })] })] }) }));
+    const formRef = useRef(null);
+    const toast = useToast((s) => s.push);
+    // Kaydet: React state + DOM birleşimi. Tarayıcı otomatik-doldurması veya IME
+    // onChange'i tetiklemese bile görünen değeri DOM'dan okuyup kaydeder.
+    const submit = () => {
+        const data = { ...f };
+        const el = formRef.current;
+        if (el) {
+            const fd = new FormData(el);
+            ["ad", "yetkili", "telefon", "email", "adres", "vergi_no", "vergi_dairesi", "notlar"]
+                .forEach((k) => {
+                const v = fd.get(k);
+                const cur = data[k];
+                if ((cur == null || cur === "") && typeof v === "string" && v.trim())
+                    data[k] = v;
+            });
+        }
+        if (!String(data.ad ?? "").trim()) {
+            toast("err", "Firma adı zorunludur");
+            return;
+        }
+        onSave(data);
+    };
+    return (_jsx(Modal, { open: true, onClose: onClose, title: firma ? "Müşteri Düzenle" : "Yeni Müşteri", size: "md", footer: _jsxs("div", { className: "flex justify-end gap-2", children: [_jsx("button", { className: "btn-ghost", onClick: onClose, children: "\u0130ptal" }), _jsx("button", { className: "btn-primary", type: "button", disabled: saving, onClick: submit, children: saving ? "Kaydediliyor..." : "Kaydet" })] }), children: _jsxs("form", { ref: formRef, onSubmit: (e) => { e.preventDefault(); submit(); }, className: "grid grid-cols-1 sm:grid-cols-2 gap-3", children: [_jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Firma Ad\u0131 *" }), _jsx("input", { name: "ad", className: "input", value: f.ad ?? "", onChange: (e) => upd("ad", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Yetkili" }), _jsx("input", { name: "yetkili", className: "input", value: f.yetkili ?? "", onChange: (e) => upd("yetkili", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Telefon" }), _jsx("input", { name: "telefon", className: "input", value: f.telefon ?? "", onChange: (e) => upd("telefon", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "E-posta" }), _jsx("input", { name: "email", className: "input", type: "email", value: f.email ?? "", onChange: (e) => upd("email", e.target.value) })] }), _jsxs("div", { children: [_jsx("label", { className: "label", children: "Vergi No" }), _jsx("input", { name: "vergi_no", className: "input", value: f.vergi_no ?? "", onChange: (e) => upd("vergi_no", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Vergi Dairesi" }), _jsx("input", { name: "vergi_dairesi", className: "input", value: f.vergi_dairesi ?? "", onChange: (e) => upd("vergi_dairesi", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Adres" }), _jsx("textarea", { name: "adres", className: "input min-h-[70px]", value: f.adres ?? "", onChange: (e) => upd("adres", e.target.value) })] }), _jsxs("div", { className: "sm:col-span-2", children: [_jsx("label", { className: "label", children: "Notlar" }), _jsx("textarea", { name: "notlar", className: "input min-h-[60px]", value: f.notlar ?? "", onChange: (e) => upd("notlar", e.target.value) })] }), _jsx("button", { type: "submit", className: "hidden", "aria-hidden": true, tabIndex: -1 })] }) }));
 }
