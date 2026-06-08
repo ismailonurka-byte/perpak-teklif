@@ -224,7 +224,7 @@ KUTU_OFSET_SEMA = {
             # Kalıp Gideri buradan kaldırıldı (kritik #9) — Baskı bölümünde
             "ad": "Sevkiyat & Diğer",
             "alanlar": [
-                {"key": "ambalaj_sekli", "label": "Ambalaj Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
+                {"key": "ambalaj_sekli", "label": "Yükleme Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
                 {"key": "diger_gider", "label": "Diğer Gider", "tip": "number"},
                 {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
@@ -268,7 +268,7 @@ KUTU_FLEKSO_SEMA = {
         {
             "ad": "Sevkiyat & Diğer",
             "alanlar": [
-                {"key": "ambalaj_sekli", "label": "Ambalaj Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
+                {"key": "ambalaj_sekli", "label": "Yükleme Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
                 # Kalıp Gideri FLEKSO'da kaldırıldı (kullanıcı talebi)
                 {"key": "diger_gider", "label": "Diğer Gider", "tip": "number"},
@@ -320,7 +320,7 @@ KOLI_SEMA = {
         {
             "ad": "Sevkiyat & Diğer",
             "alanlar": [
-                {"key": "ambalaj_sekli", "label": "Ambalaj Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
+                {"key": "ambalaj_sekli", "label": "Yükleme Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
                 {"key": "birim_klise_gideri", "label": "Birim Klişe Gideri", "tip": "number"},
                 {"key": "birim_bicak_gideri", "label": "Birim Bıçak Gideri", "tip": "number"},
