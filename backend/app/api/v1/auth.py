@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from jose import JWTError
 
 from app.core.deps import CurrentUser, DbSession
+from app.core.rbac import etkin_izinler, kullanici_rolleri
 from app.core.security import (
     create_access_token, create_refresh_token, decode_token, verify_password,
 )
@@ -14,6 +15,13 @@ from app.schemas.auth import (
 )
 
 router = APIRouter()
+
+
+def _ozet(db, user: Kullanici) -> KullaniciOzet:
+    ozet = KullaniciOzet.model_validate(user)
+    ozet.roller = kullanici_rolleri(db, user)
+    ozet.izinler = sorted(etkin_izinler(db, user).keys())
+    return ozet
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -32,7 +40,7 @@ def login(payload: LoginRequest, db: DbSession):
     return LoginResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=create_refresh_token(str(user.id)),
-        kullanici=KullaniciOzet.model_validate(user),
+        kullanici=_ozet(db, user),
     )
 
 
@@ -57,5 +65,5 @@ def refresh(payload: RefreshRequest, db: DbSession):
 
 
 @router.get("/me", response_model=KullaniciOzet)
-def me(user: CurrentUser):
-    return KullaniciOzet.model_validate(user)
+def me(user: CurrentUser, db: DbSession):
+    return _ozet(db, user)

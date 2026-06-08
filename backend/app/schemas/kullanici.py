@@ -46,6 +46,7 @@ class KullaniciOut(BaseModel):
     ad_soyad: str
     unvan: str | None = None
     rol: str
+    roller: list[str] = []      # atanan dinamik rol adları
     telefon: str | None = None
     email: str | None = None
     aktif: bool

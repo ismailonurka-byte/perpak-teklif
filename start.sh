@@ -25,6 +25,16 @@ python scripts/seed_master_data.py || echo "⚠ master seed hata verdi (atlandı
 echo "[3/6] Admin kullanıcı..."
 python scripts/create_admin.py || echo "⚠ admin seed hata verdi (atlandı)"
 
+# ── Demo seed'leri yalnızca SEED_DEMO=true iken çalışır ──
+# Production'da kapalı: gerçek veri her boot'ta resetlenmesin/çakışmasın.
+if [ "${SEED_DEMO}" != "true" ]; then
+  echo "ℹ SEED_DEMO kapalı — demo kullanıcı/müşteri/örnek teklif seed'leri atlanıyor."
+  echo "═══════════════════════════════════════════════════"
+  echo "  uvicorn başlatılıyor (port: ${PORT:-8000})"
+  echo "═══════════════════════════════════════════════════"
+  exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+fi
+
 echo "[4/6] Demo kullanıcı: mehmetdogan..."
 python -c "
 from app.core.security import hash_password

@@ -7,11 +7,25 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.api.v1 import auth, kullanici, firma, teklif, master, hesaplama, fiyat, rapor
+from app.api.v1 import auth, kullanici, firma, teklif, master, hesaplama, fiyat, rapor, rol
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Açılışta RBAC izin kataloğunu DB'ye senkronla + sistem rolünü garanti et.
+    # (Migration'lar start.sh'te zaten çalıştı; tablolar mevcut.)
+    try:
+        from app.core.rbac import katalog_senkronize, rolleri_seed_et
+        from app.db.session import SessionLocal
+        db = SessionLocal()
+        try:
+            katalog_senkronize(db)
+            rolleri_seed_et(db)
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 — seed hatası uygulamayı düşürmesin
+        import logging
+        logging.getLogger(__name__).exception("RBAC seed/senkron başarısız (atlandı)")
     yield
 
 
@@ -39,6 +53,7 @@ app.include_router(master.router, prefix="/api/v1/master", tags=["master"])
 app.include_router(hesaplama.router, prefix="/api/v1/hesaplama", tags=["hesaplama"])
 app.include_router(fiyat.router, prefix="/api/v1/fiyat", tags=["fiyat"])
 app.include_router(rapor.router, prefix="/api/v1/rapor", tags=["rapor"])
+app.include_router(rol.router, prefix="/api/v1/rol", tags=["rol"])
 
 
 @app.get("/health")

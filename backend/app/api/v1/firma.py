@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.core.deps import DbSession, require_satis_or_admin
+from app.core.deps import DbSession, require_permission
 from app.db.models import Firma, Kullanici
 from app.schemas.firma import FirmaCreate, FirmaOut, FirmaUpdate
 
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("", response_model=list[FirmaOut])
 def liste(
     db: DbSession,
-    _: Kullanici = Depends(require_satis_or_admin),
+    _: Kullanici = Depends(require_permission("firma.read")),
     q: str | None = Query(default=None),
     aktif_mi: bool = Query(default=True),
 ):
@@ -26,7 +26,7 @@ def liste(
 
 
 @router.get("/{firma_id}", response_model=FirmaOut)
-def detay(firma_id: UUID, db: DbSession, _: Kullanici = Depends(require_satis_or_admin)):
+def detay(firma_id: UUID, db: DbSession, _: Kullanici = Depends(require_permission("firma.read"))):
     f = db.query(Firma).filter(Firma.id == firma_id).first()
     if not f:
         raise HTTPException(status_code=404, detail="Firma bulunamadı")
@@ -34,7 +34,7 @@ def detay(firma_id: UUID, db: DbSession, _: Kullanici = Depends(require_satis_or
 
 
 @router.post("", response_model=FirmaOut, status_code=201)
-def olustur(payload: FirmaCreate, db: DbSession, _: Kullanici = Depends(require_satis_or_admin)):
+def olustur(payload: FirmaCreate, db: DbSession, _: Kullanici = Depends(require_permission("firma.create"))):
     f = Firma(**payload.model_dump())
     db.add(f)
     db.commit()
@@ -47,7 +47,7 @@ def guncelle(
     firma_id: UUID,
     payload: FirmaUpdate,
     db: DbSession,
-    _: Kullanici = Depends(require_satis_or_admin),
+    _: Kullanici = Depends(require_permission("firma.update")),
 ):
     f = db.query(Firma).filter(Firma.id == firma_id).first()
     if not f:

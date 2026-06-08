@@ -6,6 +6,8 @@ __pycache__/
 venv/
 *.sqlite
 *.db
+*.db-shm
+*.db-wal
 backend/uploads/
 backend/static/        # frontend production build (Docker build üretir)
 
@@ -13,6 +15,10 @@ backend/static/        # frontend production build (Docker build üretir)
 node_modules/
 dist/
 .vite/
+# Derlenmiş TS çıktısı kaynak ağacında TUTULMAZ (Vite .tsx'i derler).
+frontend/src/**/*.js
+frontend/src/**/*.js.map
+*.tsbuildinfo
 
 ## Env / secrets
 .env

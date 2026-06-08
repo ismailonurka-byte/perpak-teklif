@@ -1,14 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type Rol = "ADMIN" | "SATIS" | "URETIM";
-
 export type Kullanici = {
   id: string;
   kullanici_adi: string;
   ad_soyad: string;
-  rol: Rol;
+  rol: string;
   email?: string | null;
+  roller?: string[];
+  izinler?: string[];
 };
 
 type AuthState = {
@@ -36,3 +36,19 @@ export const useAuth = create<AuthState>()(
     { name: "perpak-auth", partialize: (s) => ({ kullanici: s.kullanici }) },
   ),
 );
+
+/**
+ * İzin kontrol hook'u. Kullanım:
+ *   const can = useCan();
+ *   if (can("teklif.create")) { ... }
+ * Yönetici (tüm izinler) zaten backend'den tüm kodlarla gelir.
+ */
+export function useCan() {
+  const izinler = useAuth((s) => s.kullanici?.izinler ?? []);
+  return (kod: string) => izinler.includes(kod);
+}
+
+/** Tek bir izni reaktif kontrol eder (component görünürlüğü için). */
+export function useIzin(kod: string): boolean {
+  return useAuth((s) => (s.kullanici?.izinler ?? []).includes(kod));
+}

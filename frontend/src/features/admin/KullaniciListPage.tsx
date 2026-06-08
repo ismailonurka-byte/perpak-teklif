@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit, Shield } from "lucide-react";
 
@@ -6,14 +6,8 @@ import { api } from "@/lib/api";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
-import type { Kullanici, Rol } from "@/types";
+import type { Kullanici, RolT } from "@/types";
 import { formatDateTime } from "@/lib/format";
-
-const ROL_RENGI: Record<Rol, string> = {
-  ADMIN: "bg-rose-100 text-rose-700",
-  SATIS: "bg-blue-100 text-blue-700",
-  URETIM: "bg-slate-100 text-slate-700",
-};
 
 export default function KullaniciListPage() {
   const qc = useQueryClient();
@@ -23,22 +17,6 @@ export default function KullaniciListPage() {
   const { data: liste = [], isLoading } = useQuery<Kullanici[]>({
     queryKey: ["kullanici-liste"],
     queryFn: async () => (await api.get("/kullanici")).data,
-  });
-
-  const kaydet = useMutation({
-    mutationFn: async (data: any) => {
-      if (data.id) {
-        const { id, ...rest } = data;
-        return (await api.patch(`/kullanici/${id}`, rest)).data;
-      }
-      return (await api.post("/kullanici", data)).data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["kullanici-liste"] });
-      toast("ok", "Kullanıcı kaydedildi");
-      setEditing(null);
-    },
-    onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Hata"),
   });
 
   return (
@@ -63,7 +41,7 @@ export default function KullaniciListPage() {
                 <tr>
                   <th className="text-left px-4 py-3">Ad Soyad</th>
                   <th className="text-left px-4 py-3">Kullanıcı Adı</th>
-                  <th className="text-left px-4 py-3">Rol</th>
+                  <th className="text-left px-4 py-3">Roller</th>
                   <th className="text-left px-4 py-3">E-posta</th>
                   <th className="text-left px-4 py-3">Son Giriş</th>
                   <th className="text-left px-4 py-3">Durum</th>
@@ -76,10 +54,13 @@ export default function KullaniciListPage() {
                     <td className="px-4 py-3 font-medium">{u.ad_soyad}</td>
                     <td className="px-4 py-3 font-mono text-xs text-slate-600">{u.kullanici_adi}</td>
                     <td className="px-4 py-3">
-                      <Badge className={ROL_RENGI[u.rol]}>
-                        <Shield size={10} className="mr-1 inline" />
-                        {u.rol}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {(u.roller && u.roller.length > 0 ? u.roller : ["—"]).map((r) => (
+                          <Badge key={r} className="bg-brand-100 text-brand-700">
+                            <Shield size={10} className="mr-1 inline" />{r}
+                          </Badge>
+                        ))}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{u.email ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-slate-500">{formatDateTime(u.son_giris)}</td>
@@ -105,8 +86,11 @@ export default function KullaniciListPage() {
         <KullaniciForm
           kullanici={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
-          onSave={(d) => kaydet.mutate(d)}
-          saving={kaydet.isPending}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["kullanici-liste"] });
+            toast("ok", "Kullanıcı kaydedildi");
+            setEditing(null);
+          }}
         />
       )}
     </div>
@@ -114,32 +98,61 @@ export default function KullaniciListPage() {
 }
 
 function KullaniciForm({
-  kullanici, onClose, onSave, saving,
+  kullanici, onClose, onSaved,
 }: {
   kullanici: Kullanici | null;
   onClose: () => void;
-  onSave: (d: any) => void;
-  saving: boolean;
+  onSaved: () => void;
 }) {
+  const toast = useToast((s) => s.push);
   const [f, setF] = useState({
     id: kullanici?.id,
     kullanici_adi: kullanici?.kullanici_adi ?? "",
     sifre: "",
     ad_soyad: kullanici?.ad_soyad ?? "",
     unvan: kullanici?.unvan ?? "",
-    rol: kullanici?.rol ?? ("SATIS" as Rol),
+    rol: kullanici?.rol ?? "SATIS",
     telefon: kullanici?.telefon ?? "",
     email: kullanici?.email ?? "",
     aktif: kullanici?.aktif ?? true,
   });
   const upd = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
 
-  const submit = () => {
-    const data: any = { ...f };
-    if (!data.sifre) delete data.sifre;
-    if (!data.id) delete data.id;
-    onSave(data);
-  };
+  // Tüm roller
+  const { data: roller = [] } = useQuery<RolT[]>({
+    queryKey: ["roller"],
+    queryFn: async () => (await api.get("/rol")).data,
+  });
+  // Düzenlenen kullanıcının mevcut rol id'leri
+  const { data: mevcutRolIds } = useQuery<string[]>({
+    queryKey: ["kullanici-roller", kullanici?.id],
+    queryFn: async () => (await api.get(`/rol/kullanici/${kullanici!.id}`)).data,
+    enabled: Boolean(kullanici?.id),
+  });
+  const [seciliRoller, setSeciliRoller] = useState<string[]>([]);
+  useEffect(() => {
+    if (mevcutRolIds) setSeciliRoller(mevcutRolIds);
+  }, [mevcutRolIds]);
+
+  const toggleRol = (id: string) =>
+    setSeciliRoller((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
+  const kaydet = useMutation({
+    mutationFn: async () => {
+      const data: any = { ...f };
+      if (!data.sifre) delete data.sifre;
+      if (!data.id) delete data.id;
+      // 1) Kullanıcıyı kaydet
+      const saved = kullanici?.id
+        ? (await api.patch(`/kullanici/${kullanici.id}`, data)).data
+        : (await api.post("/kullanici", data)).data;
+      // 2) Rolleri ata
+      await api.put(`/rol/kullanici/${saved.id}`, { rol_ids: seciliRoller });
+      return saved;
+    },
+    onSuccess: onSaved,
+    onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Hata"),
+  });
 
   return (
     <Modal
@@ -152,10 +165,10 @@ function KullaniciForm({
           <button className="btn-ghost" onClick={onClose}>İptal</button>
           <button
             className="btn-primary"
-            disabled={!f.kullanici_adi || !f.ad_soyad || (!kullanici && !f.sifre) || saving}
-            onClick={submit}
+            disabled={!f.kullanici_adi || !f.ad_soyad || (!kullanici && !f.sifre) || kaydet.isPending}
+            onClick={() => kaydet.mutate()}
           >
-            {saving ? "Kaydediliyor..." : "Kaydet"}
+            {kaydet.isPending ? "Kaydediliyor..." : "Kaydet"}
           </button>
         </div>
       }
@@ -167,38 +180,15 @@ function KullaniciForm({
         </div>
         <div>
           <label className="label">Kullanıcı Adı *</label>
-          <input
-            className="input"
-            value={f.kullanici_adi}
-            onChange={(e) => upd("kullanici_adi", e.target.value)}
-            disabled={Boolean(kullanici)}
-          />
+          <input className="input" value={f.kullanici_adi} onChange={(e) => upd("kullanici_adi", e.target.value)} disabled={Boolean(kullanici)} />
         </div>
         <div>
           <label className="label">{kullanici ? "Yeni Şifre (boş bırakılırsa değişmez)" : "Şifre *"}</label>
-          <input
-            className="input"
-            type="password"
-            value={f.sifre}
-            onChange={(e) => upd("sifre", e.target.value)}
-          />
+          <input className="input" type="password" value={f.sifre} onChange={(e) => upd("sifre", e.target.value)} />
         </div>
         <div>
           <label className="label">Ünvan (proformada yazılır)</label>
-          <input
-            className="input"
-            placeholder="örn: Satış Temsilcisi, Genel Müdür"
-            value={f.unvan}
-            onChange={(e) => upd("unvan", e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="label">Rol</label>
-          <select className="input" value={f.rol} onChange={(e) => upd("rol", e.target.value)}>
-            <option value="ADMIN">Yönetici</option>
-            <option value="SATIS">Satış Temsilcisi</option>
-            <option value="URETIM">Üretim</option>
-          </select>
+          <input className="input" placeholder="örn: Satış Temsilcisi, Genel Müdür" value={f.unvan} onChange={(e) => upd("unvan", e.target.value)} />
         </div>
         <div>
           <label className="label">Telefon</label>
@@ -208,6 +198,23 @@ function KullaniciForm({
           <label className="label">E-posta</label>
           <input className="input" type="email" value={f.email} onChange={(e) => upd("email", e.target.value)} />
         </div>
+
+        {/* Erişim rolleri — yetkiler buradan gelir */}
+        <div className="sm:col-span-2">
+          <label className="label">Erişim Rolleri (yetkiler buradan)</label>
+          <div className="grid sm:grid-cols-2 gap-1.5 rounded-xl ring-1 ring-slate-200/70 p-2 max-h-44 overflow-y-auto">
+            {roller.length === 0 && <div className="text-xs text-slate-400 p-1">Henüz rol yok.</div>}
+            {roller.map((r) => (
+              <label key={r.id} className="flex items-center gap-2 text-sm rounded-lg p-1.5 hover:bg-slate-50 cursor-pointer">
+                <input type="checkbox" checked={seciliRoller.includes(r.id)} onChange={() => toggleRol(r.id)} />
+                <Shield size={12} className={r.sistem_rol ? "text-accent-500" : "text-brand-500"} />
+                {r.ad}
+              </label>
+            ))}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">Birden fazla rol seçilebilir; izinler birleşir.</p>
+        </div>
+
         {kullanici && (
           <div className="sm:col-span-2">
             <label className="flex items-center gap-2 text-sm">

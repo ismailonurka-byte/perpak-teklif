@@ -9,7 +9,8 @@ from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
-from app.core.deps import CurrentUser, DbSession, require_satis_or_admin
+from app.core.deps import DbSession, izin_kapsami, require_permission
+from app.core.rbac import etkin_izinler
 from app.db.models import Firma, Kullanici, Teklif, TeklifDurumLog, TeklifKalem
 from app.schemas.teklif import (
     TeklifCreate, TeklifKalemCreate, TeklifListItem, TeklifOut, TeklifUpdate,
@@ -17,6 +18,11 @@ from app.schemas.teklif import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _teklif_hepsi(db, user) -> bool:
+    """Kullanıcı TÜM teklifleri görebiliyor mu (teklif.read kapsamı 'all')."""
+    return izin_kapsami(db, user, "teklif.read") == "all"
 
 
 def _gen_teklif_no(db) -> str:
@@ -37,7 +43,7 @@ def _hesapla_toplam(t: Teklif) -> None:
 @router.get("", response_model=list[TeklifListItem])
 def liste(
     db: DbSession,
-    user: Kullanici = Depends(require_satis_or_admin),
+    user: Kullanici = Depends(require_permission("teklif.read")),
     durum: str | None = Query(default=None),
     benim_mi: bool = Query(default=False),
     arama: str | None = Query(default=None),
@@ -48,8 +54,8 @@ def liste(
         db.query(Teklif)
         .options(joinedload(Teklif.firma), joinedload(Teklif.olusturan))
     )
-    # SATIS sadece kendi tekliflerini görür; ADMIN her şeyi
-    if user.rol == "SATIS" or benim_mi:
+    # Kapsam 'all' değilse yalnız kendi teklifleri; benim_mi her zaman daraltır
+    if benim_mi or not _teklif_hepsi(db, user):
         qry = qry.filter(Teklif.olusturan_id == user.id)
     if durum:
         qry = qry.filter(Teklif.durum == durum)
@@ -78,7 +84,7 @@ def liste(
 # ─── DETAY ───────────────────────────────────────────────────────────────
 
 @router.get("/{teklif_id}", response_model=TeklifOut)
-def detay(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
+def detay(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_permission("teklif.read"))):
     t = (
         db.query(Teklif)
         .options(
@@ -92,7 +98,7 @@ def detay(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_sati
     )
     if not t:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    if user.rol == "SATIS" and t.olusturan_id != user.id and t.atanan_id != user.id:
+    if not _teklif_hepsi(db, user) and t.olusturan_id != user.id and t.atanan_id != user.id:
         raise HTTPException(status_code=403, detail="Bu teklife erişim yetkiniz yok")
     return t
 
@@ -103,15 +109,15 @@ def detay(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_sati
 def olustur(
     payload: TeklifCreate,
     db: DbSession,
-    user: Kullanici = Depends(require_satis_or_admin),
+    user: Kullanici = Depends(require_permission("teklif.create")),
 ):
     firma = db.query(Firma).filter(Firma.id == payload.firma_id).first()
     if not firma:
         raise HTTPException(status_code=400, detail="Firma bulunamadı")
 
     atanan_id = payload.atanan_id or user.id
-    # SATIS kendisi dışında birine atayamaz
-    if user.rol == "SATIS" and atanan_id != user.id:
+    # Kapsam 'all' değilse kendisi dışında birine atayamaz
+    if not _teklif_hepsi(db, user) and atanan_id != user.id:
         raise HTTPException(status_code=403, detail="Yalnız kendinize teklif atayabilirsiniz")
 
     t = Teklif(
@@ -164,19 +170,19 @@ def guncelle(
     teklif_id: UUID,
     payload: TeklifUpdate,
     db: DbSession,
-    user: Kullanici = Depends(require_satis_or_admin),
+    user: Kullanici = Depends(require_permission("teklif.update")),
 ):
     t = db.query(Teklif).filter(Teklif.id == teklif_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    if user.rol == "SATIS" and t.olusturan_id != user.id:
+    if not _teklif_hepsi(db, user) and t.olusturan_id != user.id:
         raise HTTPException(status_code=403, detail="Bu teklifi düzenleyemezsiniz")
 
     data = payload.model_dump(exclude_unset=True)
     eski_durum = t.durum
 
-    # SATIS kendi teklifini başkasına atayamaz
-    if user.rol == "SATIS" and "atanan_id" in data and data["atanan_id"] != user.id:
+    # Kapsam 'all' değilse kendi teklifini başkasına atayamaz
+    if not _teklif_hepsi(db, user) and "atanan_id" in data and data["atanan_id"] != user.id:
         raise HTTPException(status_code=403, detail="Atama yetkiniz yok")
 
     if "kalemler" in data and data["kalemler"] is not None:
@@ -205,6 +211,8 @@ def guncelle(
     _hesapla_toplam(t)
 
     if "durum" in data and data["durum"] != eski_durum:
+        if "teklif.durum" not in etkin_izinler(db, user):
+            raise HTTPException(status_code=403, detail="Durum değiştirme yetkiniz yok (teklif.durum)")
         db.add(TeklifDurumLog(
             teklif_id=t.id,
             eski_durum=eski_durum,
@@ -223,14 +231,15 @@ def guncelle(
 # ─── SİL ─────────────────────────────────────────────────────────────────
 
 @router.delete("/{teklif_id}", status_code=204)
-def sil(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
+def sil(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_permission("teklif.delete"))):
     t = db.query(Teklif).filter(Teklif.id == teklif_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    if user.rol != "ADMIN" and t.olusturan_id != user.id:
+    hepsi = _teklif_hepsi(db, user)
+    if not hepsi and t.olusturan_id != user.id:
         raise HTTPException(status_code=403, detail="Silme yetkiniz yok")
-    # Sadece TASLAK silinebilir; diğerlerinde IPTAL durumuna çevrilmeli
-    if t.durum != "TASLAK" and user.rol != "ADMIN":
+    # Sadece TASLAK silinebilir; tüm-kapsamlı kullanıcı istisnadır
+    if t.durum != "TASLAK" and not hepsi:
         raise HTTPException(status_code=400, detail="Yalnızca taslakları silebilirsiniz")
     db.delete(t)
     db.commit()
@@ -239,11 +248,11 @@ def sil(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_
 # ─── DURUM LOG ──────────────────────────────────────────────────────────
 
 @router.get("/{teklif_id}/durum-log")
-def durum_log(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
+def durum_log(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_permission("teklif.read"))):
     t = db.query(Teklif).filter(Teklif.id == teklif_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    if user.rol == "SATIS" and t.olusturan_id != user.id and t.atanan_id != user.id:
+    if not _teklif_hepsi(db, user) and t.olusturan_id != user.id and t.atanan_id != user.id:
         raise HTTPException(status_code=403, detail="Erişim yetkiniz yok")
 
     logs = (
@@ -270,7 +279,7 @@ def durum_log(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
 # ─── PDF ÜRETİMİ ─────────────────────────────────────────────────────────
 
 @router.get("/{teklif_id}/pdf")
-def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
+def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_permission("teklif.pdf"))):
     from app.services.pdf import render_proforma_pdf_isolated
 
     # Yetki/varlık kontrolü için hafif yükleme (WeasyPrint burada yüklenmez).
@@ -282,7 +291,7 @@ def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
     )
     if not t:
         raise HTTPException(status_code=404, detail="Teklif bulunamadı")
-    if user.rol == "SATIS" and t.olusturan_id != user.id and t.atanan_id != user.id:
+    if not _teklif_hepsi(db, user) and t.olusturan_id != user.id and t.atanan_id != user.id:
         raise HTTPException(status_code=403, detail="Erişim yetkiniz yok")
 
     teklif_no = t.teklif_no
@@ -303,9 +312,9 @@ def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
 # ─── İSTATİSTİKLER (Dashboard) ──────────────────────────────────────────
 
 @router.get("/_/ozet")
-def ozet(db: DbSession, user: Kullanici = Depends(require_satis_or_admin)):
+def ozet(db: DbSession, user: Kullanici = Depends(require_permission("dashboard.read"))):
     base = db.query(Teklif)
-    if user.rol == "SATIS":
+    if not _teklif_hepsi(db, user):
         base = base.filter(Teklif.olusturan_id == user.id)
 
     acik_durumlar = ("TASLAK", "TEKLIF_VERILDI", "BEKLEMEDE")

@@ -248,3 +248,53 @@ class TeklifDurumLog(Base):
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     degistiren: Mapped["Kullanici"] = relationship(foreign_keys=[degistiren_id])
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RBAC — DİNAMİK ROL & İZİN
+#   rol ──< rol_izin >── izin (katalog)      kullanici ──< kullanici_rol >── rol
+#   Roller dinamik (admin oluşturur), izin kataloğu koddan gelir (permissions.py).
+# ─────────────────────────────────────────────────────────────────────────────
+
+class Rol(Base):
+    __tablename__ = "rol"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    ad: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
+    aciklama: Mapped[str | None] = mapped_column(Text)
+    sistem_rol: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)  # korumalı (silinemez), her zaman tüm izinler
+    aktif: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    olusturma_ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    izinler: Mapped[list["RolIzin"]] = relationship(back_populates="rol", cascade="all, delete-orphan")
+
+
+class Izin(Base):
+    """İzin kataloğu — permissions.py'den açılışta upsert edilir (admin elle oluşturmaz)."""
+    __tablename__ = "izin"
+
+    kod: Mapped[str] = mapped_column(String(60), primary_key=True)
+    gorunen_ad: Mapped[str] = mapped_column(String(120), nullable=False)
+    modul: Mapped[str] = mapped_column(String(60), nullable=False)
+    ekran: Mapped[str] = mapped_column(String(80), nullable=False)
+    aksiyon: Mapped[str] = mapped_column(String(40), nullable=False)
+    aciklama: Mapped[str | None] = mapped_column(Text)
+    kapsam_destekler: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    sira: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class RolIzin(Base):
+    __tablename__ = "rol_izin"
+
+    rol_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("rol.id", ondelete="CASCADE"), primary_key=True)
+    izin_kod: Mapped[str] = mapped_column(String(60), ForeignKey("izin.kod", ondelete="CASCADE"), primary_key=True)
+    kapsam: Mapped[str | None] = mapped_column(String(10))  # 'own' | 'all' | None
+
+    rol: Mapped["Rol"] = relationship(back_populates="izinler")
+
+
+class KullaniciRol(Base):
+    __tablename__ = "kullanici_rol"
+
+    kullanici_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("kullanici.id", ondelete="CASCADE"), primary_key=True)
+    rol_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("rol.id", ondelete="CASCADE"), primary_key=True)

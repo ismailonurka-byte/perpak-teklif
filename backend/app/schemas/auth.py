@@ -13,6 +13,8 @@ class KullaniciOzet(BaseModel):
     ad_soyad: str
     rol: str
     email: str | None = None
+    roller: list[str] = []        # atanan rol adları
+    izinler: list[str] = []       # etkin izin kodları (frontend ekran/aksiyon gizleme için)
 
     model_config = {"from_attributes": True}
 

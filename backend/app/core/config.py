@@ -26,9 +26,12 @@ class Settings(BaseSettings):
     SMTP_FROM: str = ""
 
     # App
-    APP_NAME: str = "Perpak Teklif"
+    APP_NAME: str = "Vanto"
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
+    # Demo seed'leri (örnek müşteri/teklif/demo kullanıcı) yalnız bu açıkken çalışır.
+    # Production'da kapalı kalmalı ki gerçek veri her boot'ta resetlenmesin/çakışmasın.
+    SEED_DEMO: bool = False
 
     @property
     def cors_origins_list(self) -> list[str]:

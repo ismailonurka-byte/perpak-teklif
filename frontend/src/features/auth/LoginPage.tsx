@@ -43,10 +43,10 @@ export default function LoginPage() {
         <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-elevated ring-1 ring-white/40 p-7">
           <div className="text-center mb-7">
             <div className="inline-flex p-3 rounded-2xl bg-white ring-1 ring-slate-100 shadow-card mb-3">
-              <img src="/logo.jpeg" alt="PERPAK Ambalaj" className="h-14 w-auto" />
+              <img src="/logo.jpeg" alt="Vanto" className="h-14 w-auto" />
             </div>
-            <h1 className="text-lg font-bold font-display text-slate-900">Teklif Yönetim Sistemi</h1>
-            <div className="text-xs text-slate-400 mt-0.5">Devam etmek için giriş yapın</div>
+            <h1 className="text-xl font-bold font-display text-slate-900 tracking-tight">Vanto</h1>
+            <div className="text-xs text-slate-400 mt-0.5">Üretim &amp; Teklif Portalı · Giriş yapın</div>
           </div>
 
           <form onSubmit={submit} className="space-y-4">
@@ -98,7 +98,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[11px] text-brand-100/50 mt-5">
-          © {new Date().getFullYear()} PERPAK Ambalaj · Tüm hakları saklıdır
+          Vanto · © {new Date().getFullYear()} PERPAK Ambalaj
         </p>
       </div>
     </div>

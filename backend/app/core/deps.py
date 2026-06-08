@@ -44,13 +44,33 @@ CurrentUser = Annotated[Kullanici, Depends(get_current_user)]
 DbSession = Annotated[Session, Depends(get_db)]
 
 
-def require_admin(user: CurrentUser) -> Kullanici:
-    if user.rol != "ADMIN":
+# ─── RBAC (dinamik izin) ────────────────────────────────────────────────────
+# Not: import burada (fonksiyon seviyesinde değil modül sonunda) — circular import yok.
+from app.core.rbac import etkin_izinler, is_admin  # noqa: E402
+
+
+def require_permission(kod: str):
+    """Belirli bir izni şart koşan dependency üretir. Örn: Depends(require_permission('teklif.create'))."""
+    def dep(user: CurrentUser, db: DbSession) -> Kullanici:
+        if kod not in etkin_izinler(db, user):
+            raise HTTPException(status_code=403, detail=f"Bu işlem için yetkiniz yok ({kod})")
+        return user
+    return dep
+
+
+def izin_kapsami(db: Session, user: Kullanici, kod: str) -> str | None:
+    """Kullanıcının bir izin için etkin kapsamını döndürür ('own' | 'all' | None)."""
+    return etkin_izinler(db, user).get(kod)
+
+
+def require_admin(user: CurrentUser, db: DbSession) -> Kullanici:
+    if not is_admin(db, user):
         raise HTTPException(status_code=403, detail="Yönetici yetkisi gerekli")
     return user
 
 
-def require_satis_or_admin(user: CurrentUser) -> Kullanici:
-    if user.rol not in ("ADMIN", "SATIS"):
-        raise HTTPException(status_code=403, detail="Satış veya yönetici yetkisi gerekli")
+def require_satis_or_admin(user: CurrentUser, db: DbSession) -> Kullanici:
+    # 'teklif.read' iznine sahip herkes (admin dahil) geçer.
+    if "teklif.read" not in etkin_izinler(db, user):
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     return user

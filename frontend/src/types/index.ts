@@ -1,4 +1,27 @@
-export type Rol = "ADMIN" | "SATIS" | "URETIM";
+// Eski string rol (geriye dönük). Yeni sistemde roller dinamik (bkz. RolT).
+export type Rol = string;
+
+// ─── RBAC ───
+export type IzinKatalog = {
+  kod: string;
+  gorunen_ad: string;
+  modul: string;
+  ekran: string;
+  aksiyon: string;
+  aciklama?: string | null;
+  kapsam_destekler: boolean;
+  sira: number;
+};
+export type RolIzinT = { izin_kod: string; kapsam?: string | null };
+export type RolT = {
+  id: string;
+  ad: string;
+  aciklama?: string | null;
+  sistem_rol: boolean;
+  aktif: boolean;
+  izinler: RolIzinT[];
+};
+
 export type TeklifDurum =
   | "TASLAK"
   | "TEKLIF_VERILDI"
@@ -13,7 +36,9 @@ export type Kullanici = {
   kullanici_adi: string;
   ad_soyad: string;
   unvan?: string | null;
-  rol: Rol;
+  rol: string;                 // eski tekil rol (geriye dönük)
+  roller?: string[];           // atanan dinamik rol adları
+  izinler?: string[];          // etkin izin kodları
   telefon?: string | null;
   email?: string | null;
   aktif: boolean;

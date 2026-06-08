@@ -10,7 +10,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.core.deps import DbSession, require_admin
+from app.core.deps import DbSession, require_permission
 from app.db.models import BirimFiyatGenel, BirimFiyatOfset, GecisCarpan, Kullanici
 
 router = APIRouter()
@@ -59,7 +59,7 @@ class CarpanSatir(BaseModel):
 # ─── GENEL FİYATLAR ─────────────────────────────────────────────────────
 
 @router.get("/genel", response_model=BirimFiyatGenelOut)
-def genel_oku(db: DbSession, _: Kullanici = Depends(require_admin)):
+def genel_oku(db: DbSession, _: Kullanici = Depends(require_permission("fiyat.read"))):
     row = db.query(BirimFiyatGenel).filter(BirimFiyatGenel.id == 1).first()
     if not row:
         raise HTTPException(status_code=404, detail="Birim fiyat tablosu bulunamadı")
@@ -70,7 +70,7 @@ def genel_oku(db: DbSession, _: Kullanici = Depends(require_admin)):
 def genel_guncelle(
     payload: BirimFiyatGenelUpdate,
     db: DbSession,
-    _: Kullanici = Depends(require_admin),
+    _: Kullanici = Depends(require_permission("fiyat.update")),
 ):
     row = db.query(BirimFiyatGenel).filter(BirimFiyatGenel.id == 1).first()
     if not row:
@@ -85,12 +85,12 @@ def genel_guncelle(
 # ─── OFSET BASKI TL ──────────────────────────────────────────────────────
 
 @router.get("/ofset", response_model=list[OfsetSatir])
-def ofset_liste(db: DbSession, _: Kullanici = Depends(require_admin)):
+def ofset_liste(db: DbSession, _: Kullanici = Depends(require_permission("fiyat.read"))):
     return db.query(BirimFiyatOfset).order_by(BirimFiyatOfset.gramaj).all()
 
 
 @router.put("/ofset/{gramaj}", response_model=OfsetSatir)
-def ofset_kaydet(gramaj: int, baski_tl: Decimal, db: DbSession, _: Kullanici = Depends(require_admin)):
+def ofset_kaydet(gramaj: int, baski_tl: Decimal, db: DbSession, _: Kullanici = Depends(require_permission("fiyat.update"))):
     row = db.query(BirimFiyatOfset).filter(BirimFiyatOfset.gramaj == gramaj).first()
     if row:
         row.baski_tl = baski_tl
@@ -103,7 +103,7 @@ def ofset_kaydet(gramaj: int, baski_tl: Decimal, db: DbSession, _: Kullanici = D
 
 
 @router.delete("/ofset/{gramaj}", status_code=204)
-def ofset_sil(gramaj: int, db: DbSession, _: Kullanici = Depends(require_admin)):
+def ofset_sil(gramaj: int, db: DbSession, _: Kullanici = Depends(require_permission("fiyat.update"))):
     row = db.query(BirimFiyatOfset).filter(BirimFiyatOfset.gramaj == gramaj).first()
     if not row:
         raise HTTPException(status_code=404, detail="Satır bulunamadı")
@@ -114,12 +114,12 @@ def ofset_sil(gramaj: int, db: DbSession, _: Kullanici = Depends(require_admin))
 # ─── GEÇİŞ ÇARPANI ───────────────────────────────────────────────────────
 
 @router.get("/carpan", response_model=list[CarpanSatir])
-def carpan_liste(db: DbSession, _: Kullanici = Depends(require_admin)):
+def carpan_liste(db: DbSession, _: Kullanici = Depends(require_permission("fiyat.read"))):
     return db.query(GecisCarpan).order_by(GecisCarpan.renk_sayisi).all()
 
 
 @router.put("/carpan/{renk_sayisi}", response_model=CarpanSatir)
-def carpan_kaydet(renk_sayisi: int, carpan: Decimal, db: DbSession, _: Kullanici = Depends(require_admin)):
+def carpan_kaydet(renk_sayisi: int, carpan: Decimal, db: DbSession, _: Kullanici = Depends(require_permission("fiyat.update"))):
     row = db.query(GecisCarpan).filter(GecisCarpan.renk_sayisi == renk_sayisi).first()
     if row:
         row.carpan = carpan
@@ -132,7 +132,7 @@ def carpan_kaydet(renk_sayisi: int, carpan: Decimal, db: DbSession, _: Kullanici
 
 
 @router.delete("/carpan/{renk_sayisi}", status_code=204)
-def carpan_sil(renk_sayisi: int, db: DbSession, _: Kullanici = Depends(require_admin)):
+def carpan_sil(renk_sayisi: int, db: DbSession, _: Kullanici = Depends(require_permission("fiyat.update"))):
     row = db.query(GecisCarpan).filter(GecisCarpan.renk_sayisi == renk_sayisi).first()
     if not row:
         raise HTTPException(status_code=404, detail="Satır bulunamadı")

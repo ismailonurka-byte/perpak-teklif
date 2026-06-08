@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from app.core.deps import DbSession, require_satis_or_admin
+from app.core.deps import DbSession, require_permission
 from app.db.models import Kullanici, Teklif, TeklifDurumLog
 
 router = APIRouter()
@@ -30,7 +30,7 @@ def _gun_farki(a: datetime | None, b: datetime | None) -> int | None:
 @router.get("/teklif-donusum")
 def teklif_donusum(
     db: DbSession,
-    user: Annotated[Kullanici, Depends(require_satis_or_admin)],
+    user: Annotated[Kullanici, Depends(require_permission("rapor.read"))],
     baslangic: date | None = Query(default=None, description="Sipariş tarihi alt sınır"),
     bitis: date | None = Query(default=None, description="Sipariş tarihi üst sınır"),
     sadece_siparis: bool = Query(default=False, description="True: yalnız siparişe dönmüş olanlar"),

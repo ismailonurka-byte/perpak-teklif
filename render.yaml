@@ -14,7 +14,7 @@ services:
       - key: DATABASE_URL
         value: sqlite:///./perpak.db
       - key: APP_NAME
-        value: Perpak Teklif (Demo)
+        value: Vanto
       - key: APP_ENV
         value: production
       - key: LOG_LEVEL

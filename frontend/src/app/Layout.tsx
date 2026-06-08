@@ -2,19 +2,20 @@ import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, FileText, Users, LogOut, Menu, X,
-  Kanban, UserCog, Calculator, BarChart3, ChevronRight,
+  Kanban, UserCog, Calculator, BarChart3, ChevronRight, ShieldCheck,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Panel", grup: "Genel" },
-  { to: "/teklifler", icon: FileText, label: "Teklifler", grup: "Genel" },
-  { to: "/kanban", icon: Kanban, label: "Kanban", grup: "Genel" },
-  { to: "/musteriler", icon: Users, label: "Müşteriler", grup: "Genel" },
-  { to: "/raporlar", icon: BarChart3, label: "Raporlar", grup: "Genel" },
-  { to: "/kullanicilar", icon: UserCog, label: "Kullanıcılar", adminOnly: true, grup: "Yönetim" },
-  { to: "/fiyatlar", icon: Calculator, label: "Fiyatlar", adminOnly: true, grup: "Yönetim" },
+  { to: "/", icon: LayoutDashboard, label: "Panel", grup: "Genel", izin: "dashboard.read" },
+  { to: "/teklifler", icon: FileText, label: "Teklifler", grup: "Genel", izin: "teklif.read" },
+  { to: "/kanban", icon: Kanban, label: "Kanban", grup: "Genel", izin: "teklif.read" },
+  { to: "/musteriler", icon: Users, label: "Müşteriler", grup: "Genel", izin: "firma.read" },
+  { to: "/raporlar", icon: BarChart3, label: "Raporlar", grup: "Genel", izin: "rapor.read" },
+  { to: "/kullanicilar", icon: UserCog, label: "Kullanıcılar", grup: "Yönetim", izin: "kullanici.manage" },
+  { to: "/roller", icon: ShieldCheck, label: "Roller", grup: "Yönetim", izin: "rol.manage" },
+  { to: "/fiyatlar", icon: Calculator, label: "Fiyatlar", grup: "Yönetim", izin: "fiyat.read" },
 ];
 
 function bashar(ad?: string) {
@@ -35,7 +36,8 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const items = navItems.filter((i) => !i.adminOnly || kullanici?.rol === "ADMIN");
+  const izinler = kullanici?.izinler ?? [];
+  const items = navItems.filter((i) => !i.izin || izinler.includes(i.izin));
   const isActive = (to: string) =>
     location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
 
@@ -71,7 +73,7 @@ export default function Layout() {
       <aside className="hidden lg:flex w-64 flex-col bg-brand-grad text-white shrink-0 sticky top-0 h-screen">
         <div className="absolute inset-0 bg-brand-sheen pointer-events-none" />
         <Link to="/" className="relative px-5 py-5 m-3 rounded-2xl bg-white shadow-card flex items-center justify-center">
-          <img src="/logo.jpeg" alt="PERPAK Ambalaj" className="h-11 w-auto" />
+          <img src="/logo.jpeg" alt="Vanto" className="h-11 w-auto" />
         </Link>
 
         <nav className="relative flex-1 px-3 overflow-y-auto">
@@ -113,7 +115,7 @@ export default function Layout() {
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
         <Link to="/" onClick={() => setMobileOpen(false)}>
-          <img src="/logo.jpeg" alt="PERPAK" className="h-8 w-auto" />
+          <img src="/logo.jpeg" alt="Vanto" className="h-8 w-auto" />
         </Link>
         <button onClick={onLogout} className="text-brand-700 p-1 -mr-1"><LogOut size={18} /></button>
       </div>
