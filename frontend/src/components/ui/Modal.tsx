@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   open: boolean;
@@ -24,8 +25,19 @@ export default function Modal({ open, onClose, title, children, size = "md", foo
     return () => document.removeEventListener("keydown", h);
   }, [open, onClose]);
 
+  // Açıkken arka plan kaydırması kilitlensin
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
   if (!open) return null;
-  return (
+
+  // Portal ile doğrudan body'ye render — sayfa sarmalayıcısındaki transform
+  // (animate-fade-in) "position: fixed"i bozmasın, modal hep viewport'a göre ortalansın.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4 animate-fade-in"
       onClick={onClose}
@@ -46,6 +58,7 @@ export default function Modal({ open, onClose, title, children, size = "md", foo
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/70 rounded-b-2xl">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
