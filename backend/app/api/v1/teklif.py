@@ -309,6 +309,36 @@ def pdf_indir(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_
     )
 
 
+@router.get("/{teklif_id}/siparis-pdf")
+def siparis_pdf(teklif_id: UUID, db: DbSession, user: Kullanici = Depends(require_permission("teklif.siparis"))):
+    """Sipariş formu PDF'i — tüm kalem alanları + maliyet kırılımı (iç / ERP girişi)."""
+    from app.services.pdf import render_proforma_pdf_isolated
+
+    t = (
+        db.query(Teklif)
+        .options(joinedload(Teklif.olusturan))
+        .filter(Teklif.id == teklif_id)
+        .first()
+    )
+    if not t:
+        raise HTTPException(status_code=404, detail="Teklif bulunamadı")
+    if not _teklif_hepsi(db, user) and t.olusturan_id != user.id and t.atanan_id != user.id:
+        raise HTTPException(status_code=403, detail="Erişim yetkiniz yok")
+
+    teklif_no = t.teklif_no
+    try:
+        pdf_bytes = render_proforma_pdf_isolated(teklif_id, dokuman="siparis")
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Sipariş formu üretimi başarısız (teklif_id=%s)", teklif_id)
+        raise HTTPException(status_code=500, detail=f"Sipariş formu üretilemedi: {e}")
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="SIPARIS-{teklif_no}.pdf"'},
+    )
+
+
 # ─── İSTATİSTİKLER (Dashboard) ──────────────────────────────────────────
 
 @router.get("/_/ozet")

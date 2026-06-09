@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<style>
+  @page { size: A4; margin: 12mm 11mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: #1e293b; }
+  .hdr { display: flex; justify-content: space-between; align-items: center;
+         border-bottom: 2px solid #1E3A5F; padding-bottom: 8px; margin-bottom: 10px; }
+  .hdr img { height: 38px; }
+  .title { text-align: right; }
+  .title h1 { margin: 0; font-size: 17px; color: #1E3A5F; letter-spacing: 1px; }
+  .title .meta { font-size: 10px; color: #475569; margin-top: 2px; }
+
+  table.ust { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  table.ust td { border: 1px solid #cbd5e1; padding: 3px 6px; }
+  table.ust .lbl { background: #f1f5f9; font-weight: bold; width: 13%; white-space: nowrap; }
+
+  .kalem { border: 1px solid #94a3b8; border-radius: 4px; margin-bottom: 11px; page-break-inside: avoid; }
+  .kalem-hd { background: #1E3A5F; color: #fff; padding: 5px 9px; font-weight: bold; font-size: 11px;
+              display: flex; justify-content: space-between; border-radius: 3px 3px 0 0; }
+  .kalem-hd .tip { font-weight: normal; opacity: .85; }
+  .kalem-bd { padding: 7px 9px; }
+
+  .grp { margin-bottom: 4px; }
+  .grp-ad { font-weight: bold; color: #1E3A5F; font-size: 8.5px; text-transform: uppercase;
+            letter-spacing: .5px; margin: 5px 0 2px; border-bottom: 1px solid #e2e8f0; padding-bottom: 1px; }
+  table.spec { width: 100%; border-collapse: collapse; }
+  table.spec td { padding: 2px 5px; border-bottom: 1px solid #f3f4f6; vertical-align: top; width: 50%; }
+  table.spec td .k { color: #64748b; display: inline-block; min-width: 42%; }
+  table.spec td .v { font-weight: 600; }
+
+  .fiyat { display: flex; gap: 18px; margin-top: 7px; padding: 6px 9px;
+           background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 3px; }
+  .fiyat b { color: #1E3A5F; }
+  .not { margin-top: 5px; font-size: 9px; color: #475569; }
+
+  .maliyet { margin-top: 7px; }
+  .maliyet .baslik { background: #FFEDD5; color: #9A3412; font-weight: bold;
+                     padding: 3px 7px; font-size: 8.5px; letter-spacing: .5px; border-radius: 2px; }
+  .siparis-not { margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="hdr">
+    <img src="{{ logo_path }}" alt="" />
+    <div class="title">
+      <h1>SİPARİŞ FORMU</h1>
+      <div class="meta">{{ t.teklif_no }} · {{ t.tarih.strftime('%d.%m.%Y') }}</div>
+    </div>
+  </div>
+
+  <table class="ust">
+    <tr>
+      <td class="lbl">Firma</td><td>{{ t.firma.ad }}</td>
+      <td class="lbl">Yetkili</td><td>{{ t.yetkili or t.firma.yetkili or '—' }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Vade</td><td>{{ t.vade_metni or '—' }}</td>
+      <td class="lbl">Sevk Yeri</td><td>{{ t.sevk_yeri or '—' }}</td>
+    </tr>
+  </table>
+
+  {% for k in kalemler %}
+  <div class="kalem">
+    <div class="kalem-hd">
+      <span>Kalem #{{ k.sira_no }} — {{ k.urun_ismi }}</span>
+      <span class="tip">{{ k.kalem_tipi_ad }}</span>
+    </div>
+    <div class="kalem-bd">
+      {% for g in k.gruplar %}
+      <div class="grp">
+        <div class="grp-ad">{{ g.ad }}</div>
+        <table class="spec">
+          {% for label, val in g.satirlar %}
+          {% if loop.index0 % 2 == 0 %}<tr>{% endif %}
+            <td><span class="k">{{ label }}:</span> <span class="v">{{ val }}</span></td>
+          {% if loop.index0 % 2 == 1 or loop.last %}</tr>{% endif %}
+          {% endfor %}
+        </table>
+      </div>
+      {% endfor %}
+
+      <div class="fiyat">
+        <span>Adet: <b>{{ "{:,.0f}".format(k.adet).replace(",", ".") }}</b></span>
+        <span>Birim Fiyat: <b>{{ tl(k.birim_fiyat) }}</b></span>
+        <span>Toplam Fiyat: <b>{{ tl(k.toplam) }}</b></span>
+      </div>
+
+      {% if k.notlar %}<div class="not"><b>Açıklama:</b> {{ k.notlar }}</div>{% endif %}
+
+      {% if k.maliyet %}
+      <div class="maliyet">
+        <div class="baslik">MALİYET KIRILIMI</div>
+        <table class="spec">
+          {% for label, val in k.maliyet %}
+          {% if loop.index0 % 2 == 0 %}<tr>{% endif %}
+            <td><span class="k">{{ label }}:</span> <span class="v">{{ val }}</span></td>
+          {% if loop.index0 % 2 == 1 or loop.last %}</tr>{% endif %}
+          {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="siparis-not"><b>SİPARİŞ NOTLARI:</b> {{ t.notlar or '—' }}</div>
+</body>
+</html>

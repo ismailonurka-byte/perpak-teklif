@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Plus, Trash2, Edit, FileDown, Send, Save, ArrowLeft, Building2,
+  Plus, Trash2, Edit, FileDown, Send, Save, ArrowLeft, Building2, ClipboardList, ChevronDown,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useIzin } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/Toast";
 import Confirm from "@/components/ui/Confirm";
 import Badge from "@/components/ui/Badge";
@@ -131,17 +131,22 @@ export default function TeklifEditorPage() {
     },
   });
 
-  const pdfIndir = async () => {
+  const canPdf = useIzin("teklif.pdf");
+  const canSiparis = useIzin("teklif.siparis");
+  const [pdfMenu, setPdfMenu] = useState(false);
+
+  // Ortak belge indirme (proforma / sipariş formu) — gerçek hata mesajını gösterir.
+  const belgeIndir = async (yol: string, dosyaAdi: string, hataMetni: string) => {
     try {
-      const res = await api.get(`/teklif/${id}/pdf`, { responseType: "blob", timeout: 90_000 });
+      const res = await api.get(yol, { responseType: "blob", timeout: 90_000 });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${teklif?.teklif_no}.pdf`;
+      a.download = dosyaAdi;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      let msg = "PDF üretilemedi";
+      let msg = hataMetni;
       try {
         const blob = e?.response?.data;
         if (blob instanceof Blob) {
@@ -154,6 +159,9 @@ export default function TeklifEditorPage() {
       toast("err", msg);
     }
   };
+
+  const pdfIndir = () => belgeIndir(`/teklif/${id}/pdf`, `${teklif?.teklif_no}.pdf`, "PDF üretilemedi");
+  const siparisIndir = () => belgeIndir(`/teklif/${id}/siparis-pdf`, `SIPARIS-${teklif?.teklif_no}.pdf`, "Sipariş formu üretilemedi");
 
   const ekleKalem = (k: TeklifKalem) => {
     setKalemler((p) => {
@@ -192,10 +200,35 @@ export default function TeklifEditorPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!isNew && (
-            <button onClick={pdfIndir} className="btn-secondary">
-              <FileDown size={16} /> PDF
-            </button>
+          {!isNew && (canPdf || canSiparis) && (
+            <div className="relative">
+              <button onClick={() => setPdfMenu((v) => !v)} className="btn-secondary">
+                <FileDown size={16} /> PDF / Belge <ChevronDown size={14} />
+              </button>
+              {pdfMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setPdfMenu(false)} />
+                  <div className="absolute right-0 mt-1 w-56 rounded-xl bg-white p-1 shadow-elevated ring-1 ring-slate-200 z-20 animate-scale-in">
+                    {canPdf && (
+                      <button
+                        onClick={() => { setPdfMenu(false); pdfIndir(); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left hover:bg-slate-100"
+                      >
+                        <FileDown size={15} className="text-brand-600" /> Proforma (Teklif)
+                      </button>
+                    )}
+                    {canSiparis && (
+                      <button
+                        onClick={() => { setPdfMenu(false); siparisIndir(); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left hover:bg-slate-100"
+                      >
+                        <ClipboardList size={15} className="text-accent-600" /> Sipariş Formu
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
           <button
             onClick={() => kaydet.mutate(undefined)}

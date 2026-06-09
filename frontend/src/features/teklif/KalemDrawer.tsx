@@ -39,6 +39,8 @@ const DETAY_ETIKETI: Record<string, string> = {
   diger_gider_birim: "Diğer Gider (Ürün Başına)",
   klise_gideri: "Klişe Gideri",
   bicak_gideri: "Bıçak Gideri",
+  birim_klise_gideri: "Birim Klişe Gideri",
+  birim_bicak_gideri: "Birim Bıçak Gideri",
   kar_orani: "Kâr Oranı",
   siparis_miktari: "Sipariş Miktarı",
 };
@@ -120,9 +122,8 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
         setBirimMaliyet(data.birim_maliyet);
         setOnerilen(data.birim_satis);
         setDetay(data.detay);
-        if (initial == null && data.birim_satis > 0 && birimFiyat === 0) {
-          setBirimFiyat(Number(data.birim_satis.toFixed(2)));
-        }
+        // Birim fiyat OTOMATİK DOLDURULMAZ — yalnız manuel girilir (kullanıcı talebi).
+        // "Önerilen" değeri altta bilgi olarak gösterilir, kullanıcı isterse onu yazar.
       } catch (e: any) {
         setHata(e?.response?.data?.detail ?? "Hesap hatası");
       } finally {
@@ -214,7 +215,16 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
             <DinamikForm
               sema={tipBilgi.alan_semasi}
               degerler={spec}
-              onChange={(k, v) => setSpec((p) => ({ ...p, [k]: v }))}
+              onChange={(k, v) => setSpec((p) => {
+                const next = { ...p, [k]: v };
+                // Roland makine seçimi → Kalıp TL + Geçiş Çarpanı varsayılanları
+                // (otomatik gelir ama alanlar düzenlenebilir kalır)
+                if (k === "baski_turu") {
+                  if (v === "ROLAND_700") { next.baski_kalip_tl = 1450; next.gecis_carpan = 0.40; }
+                  else if (v === "ROLAND_800") { next.baski_kalip_tl = 2000; next.gecis_carpan = 0.55; }
+                }
+                return next;
+              })}
             />
             <hr />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -240,7 +250,7 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
                 />
               </div>
               <div>
-                <label className="label">Satır Toplam</label>
+                <label className="label">Toplam Fiyat</label>
                 <div className="input bg-slate-50 font-semibold">{tl.format(toplam)}</div>
               </div>
             </div>

@@ -32,8 +32,10 @@ def calc_koli(spec: dict, db: Session):
         DIKIS_BIRIM = D(spec.get("dikis_birim_tl", 0))
         dikis = DIKIS_AD * DIKIS_BIRIM
 
-    KLISE = D(spec.get("birim_klise_gideri", 0))
-    BICAK = D(spec.get("birim_bicak_gideri", 0))
+    # Klişe & bıçak: TOPLAM (birimsiz) gider — sipariş adedine bölünür.
+    # (Eski kayıtlar 'birim_*' anahtarını kullanır → geriye dönük okunur.)
+    KLISE = D(spec.get("klise_gideri", spec.get("birim_klise_gideri", 0)))
+    BICAK = D(spec.get("bicak_gideri", spec.get("birim_bicak_gideri", 0)))
     KAR_ORANI = D(spec.get("kar_orani", "0.20"))
 
     SIPARIS_MIK = D(spec.get("siparis_miktari", 1)) or Decimal("1")
@@ -48,7 +50,9 @@ def calc_koli(spec: dict, db: Session):
     if isinstance(ilave_dict, dict):
         ilave = sum(D(v) for v in ilave_dict.values() if v not in (None, ""))
 
-    birim_maliyet = toplam_birim + KLISE + BICAK + ilave
+    # Klişe + bıçak toplam gideri ürün başına dağıtılır
+    klise_bicak_birim = (KLISE + BICAK) / SIPARIS_MIK
+    birim_maliyet = toplam_birim + klise_bicak_birim + ilave
     birim_satis = birim_maliyet * (Decimal("1") + KAR_ORANI)
     toplam_satis = birim_satis * SIPARIS_MIK
 
@@ -60,8 +64,9 @@ def calc_koli(spec: dict, db: Session):
             "levha_tl": float(levha),
             "dikis_tl": float(dikis),
             "ilave_islemler_tl": float(ilave),
-            "klise_gideri": float(KLISE),
-            "bicak_gideri": float(BICAK),
+            # Maliyet kırılımı PER-ÜRÜN gösterir: toplam gider / sipariş adedi
+            "birim_klise_gideri": float(KLISE / SIPARIS_MIK),
+            "birim_bicak_gideri": float(BICAK / SIPARIS_MIK),
             "kar_orani": float(KAR_ORANI),
             "siparis_miktari": float(SIPARIS_MIK),
         },

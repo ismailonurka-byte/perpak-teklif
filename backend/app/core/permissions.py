@@ -46,6 +46,8 @@ KATALOG: list[Izin] = [
          "Teklifi onayla/reddet/beklet/siparişe çevir", kapsam=True, sira=24),
     Izin("teklif.pdf", "Teklif PDF İndir", "Satış", "Teklif Detay", "İndir",
          "Proforma PDF'i üretir/indirir", kapsam=True, sira=25),
+    Izin("teklif.siparis", "Sipariş Formu İndir", "Satış", "Teklif Detay", "İndir",
+         "Sipariş formu PDF'i (tüm alanlar + maliyet kırılımı, ERP girişi için)", kapsam=True, sira=27),
     Izin("maliyet.read", "Maliyet & Kâr Görüntüle", "Satış", "Teklif Detay", "Görüntüle",
          "Kalem maliyeti ve kâr marjını gösterir (HASSAS bilgi)", sira=26),
 

@@ -25,10 +25,11 @@ frontend/src/**/*.js.map
 .env.local
 *.local
 
-## IDE
+## IDE / araçlar
 .vscode/
 .idea/
 .DS_Store
+.claude/
 
 ## Logs
 *.log

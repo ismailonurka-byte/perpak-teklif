@@ -12,14 +12,15 @@ from pathlib import Path
 BACKEND_ROOT = Path(__file__).resolve().parents[3]
 
 
-def render_proforma_pdf_isolated(teklif_id, timeout: int = 60) -> bytes:
+def render_proforma_pdf_isolated(teklif_id, timeout: int = 60, dokuman: str = "proforma") -> bytes:
     """Verilen teklif id için PDF byte'larını ayrı süreçte üretir.
 
+    dokuman: "proforma" (müşteri teklifi) | "siparis" (iç sipariş formu).
     Hata olursa alt-sürecin stderr'ini içeren RuntimeError fırlatır
     (gerçek sebep böylece loglarda ve istemcide görünür).
     """
     proc = subprocess.run(
-        [sys.executable, "-m", "app.services.pdf.render_cli", str(teklif_id)],
+        [sys.executable, "-m", "app.services.pdf.render_cli", str(teklif_id), dokuman],
         cwd=str(BACKEND_ROOT),
         capture_output=True,
         timeout=timeout,

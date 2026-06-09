@@ -31,11 +31,11 @@ KARTON_CINSI = [
 
 GRAMAJLAR = [160, 180, 200, 210, 230, 250, 300, 350, 400, 450]
 
+# OFSET 'baski_turu' lookup'ının TEK tüketicisidir → yalnız ofset makineleri.
+# (FLEKSO kendi 'baski_durum', KOLİ 'baskili_baskisiz' kullanır; Baskısız OFSET'te istenmiyor.)
 BASKI_TURU = [
-    ("BASKISIZ", "Baskısız"),
     ("ROLAND_700", "Roland 700 (Ofset)"),
     ("ROLAND_800", "Roland 800 (Ofset)"),
-    ("FLEKSO", "Flekso"),
 ]
 
 RENKLER = [
@@ -259,9 +259,10 @@ KUTU_FLEKSO_SEMA = {
             "alanlar": [
                 {"key": "renk_sayisi", "label": "Renk Sayısı", "tip": "int", "min": 0, "max": 6},
                 {"key": "renk_kodlari", "label": "Renk Seçimi", "tip": "renk_multi"},
-                {"key": "baski_kesim_tl", "label": "Baskı+Kesim TL", "tip": "number"},
-                {"key": "kesim_tl", "label": "Kesim TL", "tip": "number"},
-                {"key": "yapistirma_tl_ad", "label": "Yapıştırma TL/adet", "tip": "number"},
+                # Seçmeli: işaretlenince fiyat listesinden otomatik gelir, manuel düzenlenebilir
+                {"key": "baski_kesim_tl", "label": "Baskı+Kesim", "tip": "secmeli", "fiyat_kaynak": "flekso_baski_kesim_tl"},
+                {"key": "kesim_tl", "label": "Kesim", "tip": "secmeli", "fiyat_kaynak": "flekso_kesim_tl"},
+                {"key": "yapistirma_tl_ad", "label": "Yapıştırma/Dikiş", "tip": "secmeli", "fiyat_kaynak": "flekso_yapistirma_tl_ad"},
                 {"key": "eklenti", "label": "Eklenti", "tip": "lookup", "kaynak": "eklenti"},
             ],
         },
@@ -322,8 +323,10 @@ KOLI_SEMA = {
             "alanlar": [
                 {"key": "ambalaj_sekli", "label": "Yükleme Şekli", "tip": "lookup", "kaynak": "ambalaj_sekli"},
                 {"key": "grafik_durumu", "label": "Grafik", "tip": "lookup", "kaynak": "grafik_durumu"},
-                {"key": "birim_klise_gideri", "label": "Birim Klişe Gideri", "tip": "number"},
-                {"key": "birim_bicak_gideri", "label": "Birim Bıçak Gideri", "tip": "number"},
+                {"key": "klise_gideri", "label": "Klişe Gideri", "tip": "number",
+                 "aciklama": "Toplam klişe gideri — sipariş adedine bölünür"},
+                {"key": "bicak_gideri", "label": "Bıçak Gideri", "tip": "number",
+                 "aciklama": "Toplam bıçak gideri — sipariş adedine bölünür"},
                 {"key": "kar_orani", "label": "Kâr Oranı", "tip": "percent", "varsayilan": 0.2},
             ],
         },
@@ -346,7 +349,7 @@ BIRIM_FIYAT_GENEL = {
     "yapistirma_tl_ad": "0.85",
     "flekso_baski_kesim_tl": "4.00",
     "flekso_kesim_tl": "2.25",
-    "flekso_yapistirma_tl_ad": "0.85",
+    "flekso_yapistirma_tl_ad": "1.25",
     "koli_dikis_birim_tl": "2.25",
 }
 

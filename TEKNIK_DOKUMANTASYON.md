@@ -163,6 +163,10 @@ Mevcut izinler (18): `dashboard.read`, `teklif.read*`, `teklif.create`, `teklif.
 `teklif.py` `/{id}/pdf` → `services/pdf/runner.py` PDF'i **ayrı alt-süreçte** (`render_cli.py`, WeasyPrint) üretir. Böylece ana uvicorn süreci weasyprint'i hiç yüklemez (sabit ~86 MB), bellek her PDF sonrası geri döner — Render free 512 MB'a takılmaz. Hata olursa gerçek sebep loglanır + istemciye döner.
 Sürüm kilidi kritik: **weasyprint==68.1 + pydyf==0.12.1** (uyumsuzluk "super has no attribute transform" hatası verir).
 
+**İki belge türü** (TeklifEditorPage'de "PDF / Belge ▾" menüsü):
+- **Proforma** (`/{id}/pdf`, izin `teklif.pdf`) — müşteri teklifi. Baskı sütunu makine adı değil **renk isimleri** gösterir; Satış Temsilcisi bloğu yoktur.
+- **Sipariş Formu** (`/{id}/siparis-pdf`, izin `teklif.siparis`) — iç/ERP belgesi. `siparis_formu.html`; her kalem ayrı blokta **tüm spec alanları** (şema etiketleriyle) + Adet/Birim/Toplam + Açıklama + **Maliyet Kırılımı**. Çok kalemli, ERP girişine uygun. `render_cli.py <id> siparis` ile aynı alt-süreçte üretilir.
+
 ---
 
 ## 8. Deployment

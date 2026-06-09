@@ -1,7 +1,7 @@
 """PDF'i AYRI bir süreçte üretir — bellek izolasyonu (Render free 512 MB için).
 
 Kullanım:
-    python -m app.services.pdf.render_cli <teklif_id>
+    python -m app.services.pdf.render_cli <teklif_id> [proforma|siparis]
 
 PDF byte'larını stdout'a yazar. Hata olursa traceback'i stderr'e yazıp
 sıfırdan farklı bir kodla çıkar. Bu süreç bittiğinde WeasyPrint'in tükettiği
@@ -15,16 +15,17 @@ from sqlalchemy.orm import joinedload
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print("kullanım: python -m app.services.pdf.render_cli <teklif_id>", file=sys.stderr)
+    if len(sys.argv) < 2:
+        print("kullanım: python -m app.services.pdf.render_cli <teklif_id> [proforma|siparis]", file=sys.stderr)
         return 2
 
     teklif_id = UUID(sys.argv[1])
+    dokuman = sys.argv[2] if len(sys.argv) > 2 else "proforma"
 
     # Ağır importlar burada — yalnızca alt-süreçte yüklenir, ana süreçte değil.
-    from app.db.models import Teklif
+    from app.db.models import KalemTipi, Teklif
     from app.db.session import SessionLocal
-    from app.services.pdf.proforma import render_proforma_pdf
+    from app.services.pdf.proforma import render_proforma_pdf, render_siparis_pdf
 
     db = SessionLocal()
     try:
@@ -43,7 +44,13 @@ def main() -> int:
             return 3
 
         # Session açıkken render et ki şablondaki lazy ilişki erişimleri de çözülsün.
-        pdf = render_proforma_pdf(t)
+        if dokuman == "siparis":
+            kodlar = {k.kalem_tipi for k in t.kalemler}
+            kts = db.query(KalemTipi).filter(KalemTipi.kod.in_(kodlar)).all()
+            semalar = {kt.kod: {"ad": kt.ad, "sema": kt.alan_semasi} for kt in kts}
+            pdf = render_siparis_pdf(t, semalar)
+        else:
+            pdf = render_proforma_pdf(t)
         sys.stdout.buffer.write(pdf)
         sys.stdout.buffer.flush()
         return 0

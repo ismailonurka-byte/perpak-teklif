@@ -105,6 +105,38 @@ function FieldRenderer({
     );
   }
 
+  // ─── SECMELI (checkbox + fiyat; seçilince listeden otomatik, manuel düzenlenebilir) ─
+  if (alan.tip === "secmeli") {
+    const oto = Number(master.birim_fiyat?.[alan.fiyat_kaynak] ?? 0);
+    // value: sayı → seçili (o fiyat) · null → seçili değil · undefined → varsayılan seçili (oto)
+    if (value === undefined) {
+      setTimeout(() => onChange(oto), 0);
+    }
+    const aktif = value !== null && value !== undefined;
+    return (
+      <div>
+        <label className="label flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={aktif}
+            onChange={(e) => onChange(e.target.checked ? oto : null)}
+          />
+          {alan.label}
+        </label>
+        <input
+          className="input"
+          type="number"
+          step="any"
+          inputMode="decimal"
+          disabled={!aktif}
+          placeholder={aktif ? "" : "Seçili değil"}
+          value={aktif ? value : ""}
+          onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
+        />
+      </div>
+    );
+  }
+
   // ─── PERCENT (kullanıcı 35 yazar, 0.35 saklanır) ─────────────────────
   if (alan.tip === "percent") {
     const yuzde = value != null ? Number(value) * 100 : "";
