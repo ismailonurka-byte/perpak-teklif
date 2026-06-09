@@ -1,0 +1,42 @@
+VANTO - SUNUCU KURULUM (Windows)
+================================
+
+GEREKLILER
+- Windows (yonetici hesabi)
+- Internet baglantisi (Python ve PostgreSQL ilk kurulumda indirilir)
+
+KURULUM
+1) Bu ZIP'i sunucuda bir klasore acin (orn: C:\Vanto).
+2) deploy\windows\kurulum.bat dosyasina SAG TIK > "Yonetici olarak calistir".
+   (Cift tiklarsaniz da yonetici onayi ister.)
+3) Kurulum birkac dakika surer. Sonunda erisim adresi ve giris bilgisi yazar:
+      Erisim : http://<sunucu-ip>:8000
+      Giris  : admin / admin123   <-- ilk giriste sifreyi degistirin
+
+kurulum.bat sunlari otomatik yapar:
+- Python 3.12 ve PostgreSQL 16 (yoksa indirir ve kurar)
+- Veritabani + kullanici olusturur
+- backend\.env dosyasini yazar (rastgele SECRET_KEY + sunucu IP)
+- Veritabani semasini kurar, admin kullaniciyi olusturur, temel verileri yukler
+- Firewall'da 8000 portunu acar
+- Gorev Zamanlayici'da "Vanto" servisini kurar (sunucu yeniden baslasa da otomatik kalkar)
+
+KULLANIM
+- Baslat/Durdur : Gorev Zamanlayici > "Vanto"
+- Elle calistir : deploy\windows\baslat.bat
+- Erisim        : ag icindeki bilgisayarlardan  http://<sunucu-ip>:8000
+
+GUNCELLEME (yeni surum geldiginde)
+- Yeni ZIP'i ayni klasore acin (uzerine yazin) ve kurulum.bat'i tekrar calistirin.
+  (Veriler PostgreSQL'de durur; silinmez.)
+
+SORUN OLURSA
+- "Python/PostgreSQL kurulamadi" derse: elle kurup kurulum.bat'i tekrar calistirin.
+  Python  : https://www.python.org/downloads/
+  Postgres: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+- Installer indirme linkleri eskirse: deploy\windows\kurulum.ps1 icindeki
+  $PythonUrl / $PgUrl degerlerini guncelleyin.
+
+YEDEKLEME (onerilir)
+- Gunluk:  "C:\Program Files\PostgreSQL\16\bin\pg_dump.exe" -U perpak perpak_teklif > C:\yedek\vanto.sql
+  (Gorev Zamanlayici ile otomatiklestirilebilir.)

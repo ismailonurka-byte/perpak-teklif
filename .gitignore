@@ -33,3 +33,6 @@ frontend/src/**/*.js.map
 
 ## Logs
 *.log
+
+## Teslim paketi (build artefakti)
+vanto-kurulum.zip
