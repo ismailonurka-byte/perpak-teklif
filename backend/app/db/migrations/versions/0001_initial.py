@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("rol", sa.String(20), nullable=False),
         sa.Column("telefon", sa.String(30)),
         sa.Column("email", sa.String(120)),
-        sa.Column("aktif", sa.Boolean, nullable=False, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, nullable=False, server_default=sa.true()),
         sa.Column("son_giris", sa.DateTime(timezone=True)),
         sa.Column("olusturma_ts", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
@@ -44,7 +44,7 @@ def upgrade() -> None:
         sa.Column("vergi_no", sa.String(20)),
         sa.Column("vergi_dairesi", sa.String(100)),
         sa.Column("notlar", sa.Text),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
         sa.Column("olusturma_ts", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
     op.create_index("ix_firma_ad", "firma", ["ad"])
@@ -54,57 +54,57 @@ def upgrade() -> None:
         "karton_cinsi",
         sa.Column("kod", sa.String(30), primary_key=True),
         sa.Column("ad", sa.String(80), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
         sa.Column("sira", sa.Integer, server_default=sa.text("0")),
     )
     op.create_table(
         "gramaj",
         sa.Column("deger", sa.Integer, primary_key=True),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "oluklu_kalite",
         sa.Column("kod", sa.String(60), primary_key=True),
         sa.Column("tip", sa.String(10), nullable=False),
         sa.Column("aciklama", sa.String(120)),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "baski_turu",
         sa.Column("kod", sa.String(30), primary_key=True),
         sa.Column("ad", sa.String(60), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "renk",
         sa.Column("kod", sa.String(30), primary_key=True),
         sa.Column("ad", sa.String(60), nullable=False),
         sa.Column("hex_kod", sa.String(7)),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "baski_sonrasi_islem",
         sa.Column("kod", sa.String(40), primary_key=True),
         sa.Column("ad", sa.String(80), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "eklenti",
         sa.Column("kod", sa.String(30), primary_key=True),
         sa.Column("ad", sa.String(60), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "ambalaj_sekli",
         sa.Column("kod", sa.String(40), primary_key=True),
         sa.Column("ad", sa.String(80), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
     op.create_table(
         "grafik_durumu",
         sa.Column("kod", sa.String(40), primary_key=True),
         sa.Column("ad", sa.String(100), nullable=False),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
     )
 
     op.create_table(
@@ -136,7 +136,7 @@ def upgrade() -> None:
         sa.Column("kod", sa.String(30), primary_key=True),
         sa.Column("ad", sa.String(80), nullable=False),
         sa.Column("aciklama", sa.Text),
-        sa.Column("aktif", sa.Boolean, server_default=sa.text("1")),
+        sa.Column("aktif", sa.Boolean, server_default=sa.true()),
         sa.Column("alan_semasi", sa.JSON, nullable=False),
         sa.Column("hesaplama_fn", sa.String(60), nullable=False),
         sa.Column("sira", sa.Integer, server_default=sa.text("0")),
