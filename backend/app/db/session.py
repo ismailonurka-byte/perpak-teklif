@@ -4,22 +4,23 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.core.config import settings
 
-_is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+_db_url = settings.effective_database_url
+_is_sqlite = _db_url.startswith("sqlite")
 
 if _is_sqlite:
     # SQLite: pool argümanları geçersiz; tek dosya, thread paylaşımı açılır.
     engine = create_engine(
-        settings.DATABASE_URL,
+        _db_url,
         pool_pre_ping=True,
         connect_args={"check_same_thread": False},
     )
 else:
-    # Postgres vb.: bağlantı havuzu ayarlı.
+    # Postgres vb.: bağlantı havuzu ayarlı (Render free DB için ölçülü).
     engine = create_engine(
-        settings.DATABASE_URL,
+        _db_url,
         pool_pre_ping=True,
-        pool_size=10,
-        max_overflow=20,
+        pool_size=5,
+        max_overflow=5,
     )
 
 

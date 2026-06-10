@@ -1,5 +1,14 @@
-# Render Blueprint — tek Web Service (Docker)
+# Render Blueprint — Web Service (Docker) + ücretsiz PostgreSQL (demo)
 # https://render.com/docs/blueprint-spec
+# NOT: Render free Postgres ~30 günde silinir + veri bulutta → yalnız DEMO içindir.
+#      Kalıcı/gizli veri on-prem Postgres'te tutulur.
+databases:
+  - name: vanto-db
+    plan: free
+    databaseName: perpak_teklif
+    user: perpak
+    region: frankfurt
+
 services:
   - type: web
     name: perpak-teklif
@@ -11,8 +20,12 @@ services:
     envVars:
       - key: SECRET_KEY
         generateValue: true
+      # PostgreSQL bağlantısı (Render free DB'den otomatik gelir).
+      # Render 'postgres://...' verir; kod 'postgresql+psycopg://'ye normalize eder.
       - key: DATABASE_URL
-        value: sqlite:///./perpak.db
+        fromDatabase:
+          name: vanto-db
+          property: connectionString
       - key: APP_NAME
         value: Vanto
       - key: APP_ENV
@@ -27,4 +40,8 @@ services:
         value: "*"
       - key: SMTP_ENABLED
         value: "false"
+      # Demo veriyi (örnek müşteri/teklif/kullanıcı) tohumla — Postgres kalıcı olduğundan
+      # bir kez basılır; idempotent (var olanı tekrar eklemez).
+      - key: SEED_DEMO
+        value: "true"
     healthCheckPath: /health

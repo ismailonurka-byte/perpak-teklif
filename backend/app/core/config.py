@@ -37,6 +37,19 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
+    @property
+    def effective_database_url(self) -> str:
+        """Render/Heroku 'postgres://' ve düz 'postgresql://' → 'postgresql+psycopg://'.
+        SQLite ve zaten '+psycopg' içeren URL'lere dokunmaz."""
+        url = self.DATABASE_URL
+        if "+psycopg" in url or url.startswith("sqlite"):
+            return url
+        if url.startswith("postgres://"):
+            return "postgresql+psycopg://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            return "postgresql+psycopg://" + url[len("postgresql://"):]
+        return url
+
 
 @lru_cache
 def get_settings() -> Settings:

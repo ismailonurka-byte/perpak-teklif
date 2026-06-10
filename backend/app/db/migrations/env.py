@@ -8,7 +8,7 @@ from app.db.session import Base
 from app.db import models  # noqa: F401 — modelleri import ederek metadata'yı tetikle
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.effective_database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
@@ -17,7 +17,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline():
     context.configure(
-        url=settings.DATABASE_URL,
+        url=settings.effective_database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -28,7 +28,7 @@ def run_migrations_offline():
 
 def run_migrations_online():
     cfg_section = config.get_section(config.config_ini_section, {})
-    cfg_section["sqlalchemy.url"] = settings.DATABASE_URL
+    cfg_section["sqlalchemy.url"] = settings.effective_database_url
     connectable = engine_from_config(cfg_section, prefix="sqlalchemy.", poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
