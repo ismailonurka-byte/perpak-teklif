@@ -30,56 +30,56 @@ class Izin:
 # ─────────────────────────────────────────────────────────────────────────────
 KATALOG: list[Izin] = [
     # ── Panel / Dashboard ──
-    Izin("dashboard.read", "Paneli Görüntüle", "Genel", "Panel", "Görüntüle",
-         "Ana panel özet kartlarını ve son teklifleri görür", sira=10),
+    Izin("dashboard.read", "Genel Bakış'ı Görüntüle", "Genel", "Genel Bakış", "Görüntüle",
+         "Genel Bakış: özet KPI, aksiyon gerektirenler ve hızlı eylemler", sira=10),
 
-    # ── Teklifler (Satış) ──
-    Izin("teklif.read", "Teklifleri Görüntüle", "Satış", "Teklifler", "Görüntüle",
+    # ── Teklif ──
+    Izin("teklif.read", "Teklifleri Görüntüle", "Teklif", "Teklifler", "Görüntüle",
          "Teklif listesini, Kanban'ı ve teklif detayını açar", kapsam=True, sira=20),
-    Izin("teklif.create", "Teklif Oluştur", "Satış", "Teklifler", "Oluştur",
+    Izin("teklif.create", "Teklif Oluştur", "Teklif", "Teklifler", "Oluştur",
          "Yeni teklif ekler", sira=21),
-    Izin("teklif.update", "Teklif Düzenle", "Satış", "Teklifler", "Düzenle",
+    Izin("teklif.update", "Teklif Düzenle", "Teklif", "Teklifler", "Düzenle",
          "Mevcut teklifi ve kalemlerini düzenler", kapsam=True, sira=22),
-    Izin("teklif.delete", "Teklif Sil", "Satış", "Teklifler", "Sil",
+    Izin("teklif.delete", "Teklif Sil", "Teklif", "Teklifler", "Sil",
          "Teklif (taslak) siler", kapsam=True, sira=23),
-    Izin("teklif.durum", "Teklif Durumu Değiştir", "Satış", "Teklif Detay", "Durum",
+    Izin("teklif.durum", "Teklif Durumu Değiştir", "Teklif", "Teklif Detay", "Durum",
          "Teklifi onayla/reddet/beklet/siparişe çevir", kapsam=True, sira=24),
-    Izin("teklif.pdf", "Teklif PDF İndir", "Satış", "Teklif Detay", "İndir",
+    Izin("teklif.pdf", "Teklif PDF İndir", "Teklif", "Teklif Detay", "İndir",
          "Proforma PDF'i üretir/indirir", kapsam=True, sira=25),
-    Izin("teklif.siparis", "Sipariş Formu İndir", "Satış", "Teklif Detay", "İndir",
+    Izin("teklif.siparis", "Sipariş Formu İndir", "Teklif", "Teklif Detay", "İndir",
          "Sipariş formu PDF'i (tüm alanlar + maliyet kırılımı, ERP girişi için)", kapsam=True, sira=27),
-    Izin("maliyet.read", "Maliyet & Kâr Görüntüle", "Satış", "Teklif Detay", "Görüntüle",
+    Izin("maliyet.read", "Maliyet & Kâr Görüntüle", "Teklif", "Teklif Detay", "Görüntüle",
          "Kalem maliyeti ve kâr marjını gösterir (HASSAS bilgi)", sira=26),
 
-    # ── Müşteriler ──
-    Izin("firma.read", "Müşterileri Görüntüle", "Satış", "Müşteriler", "Görüntüle",
+    # ── Tanımlar › Müşteriler ──
+    Izin("firma.read", "Müşterileri Görüntüle", "Tanımlar", "Müşteriler", "Görüntüle",
          "Müşteri listesini ve detayını görür", sira=30),
-    Izin("firma.create", "Müşteri Oluştur", "Satış", "Müşteriler", "Oluştur",
+    Izin("firma.create", "Müşteri Oluştur", "Tanımlar", "Müşteriler", "Oluştur",
          "Yeni müşteri ekler", sira=31),
-    Izin("firma.update", "Müşteri Düzenle", "Satış", "Müşteriler", "Düzenle",
+    Izin("firma.update", "Müşteri Düzenle", "Tanımlar", "Müşteriler", "Düzenle",
          "Mevcut müşteriyi düzenler", sira=32),
 
-    # ── Raporlar ──
-    Izin("rapor.read", "Raporları Görüntüle", "Raporlama", "Raporlar", "Görüntüle",
-         "Dönüşüm ve performans raporlarını açar", sira=40),
+    # ── Tanımlar › Fiyatlar ──
+    Izin("fiyat.read", "Fiyatları Görüntüle", "Tanımlar", "Fiyatlar", "Görüntüle",
+         "Birim fiyat listelerini görür", sira=40),
+    Izin("fiyat.update", "Fiyatları Düzenle", "Tanımlar", "Fiyatlar", "Düzenle",
+         "Birim fiyatları günceller", sira=41),
 
-    # ── Fiyat Yönetimi ──
-    Izin("fiyat.read", "Fiyatları Görüntüle", "Yönetim", "Fiyat Yönetimi", "Görüntüle",
-         "Birim fiyat listelerini görür", sira=50),
-    Izin("fiyat.update", "Fiyatları Düzenle", "Yönetim", "Fiyat Yönetimi", "Düzenle",
-         "Birim fiyatları günceller", sira=51),
+    # ── Tanımlar › Master Veriler (karton, gramaj, kalem tipi vb.) ──
+    Izin("master.read", "Master Verileri Görüntüle", "Tanımlar", "Master Veriler", "Görüntüle",
+         "Karton/gramaj/kalem tipi gibi tanım verilerini görür", sira=50),
+    Izin("master.update", "Master Verileri Düzenle", "Tanımlar", "Master Veriler", "Düzenle",
+         "Tanım/lookup verilerini günceller", sira=51),
 
-    # ── Master Veriler (karton, gramaj, kalem tipi vb.) ──
-    Izin("master.read", "Master Verileri Görüntüle", "Yönetim", "Master Veriler", "Görüntüle",
-         "Karton/gramaj/kalem tipi gibi tanım verilerini görür", sira=60),
-    Izin("master.update", "Master Verileri Düzenle", "Yönetim", "Master Veriler", "Düzenle",
-         "Tanım/lookup verilerini günceller", sira=61),
+    # ── Teklif Takip ──
+    Izin("rapor.read", "Teklif Takip Dashboard'u Görüntüle", "Teklif Takip", "Teklif Takip Dashboard", "Görüntüle",
+         "Teklif → sipariş dönüşüm ve performans dashboard'unu açar", sira=60),
 
-    # ── Kullanıcı & Rol Yönetimi ──
-    Izin("kullanici.manage", "Kullanıcıları Yönet", "Yönetim", "Kullanıcılar", "Yönet",
-         "Kullanıcı oluşturur, düzenler, rol atar", sira=70),
-    Izin("rol.manage", "Rolleri Yönet", "Yönetim", "Roller", "Yönet",
-         "Rol oluşturur/siler ve rollere izin atar", sira=71),
+    # ── Yönetim › Ayarlar ──
+    Izin("kullanici.manage", "Kullanıcıları Yönet", "Yönetim", "Ayarlar", "Yönet",
+         "Ayarlar > Kullanıcılar: kullanıcı oluşturur, düzenler, rol atar", sira=70),
+    Izin("rol.manage", "Rolleri Yönet", "Yönetim", "Ayarlar", "Yönet",
+         "Ayarlar > Roller: rol oluşturur/siler ve rollere izin atar", sira=71),
 ]
 
 KATALOG_KODLARI: set[str] = {p.kod for p in KATALOG}

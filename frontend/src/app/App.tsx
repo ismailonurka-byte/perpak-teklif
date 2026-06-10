@@ -9,8 +9,7 @@ import TeklifListPage from "@/features/teklif/TeklifListPage";
 import TeklifEditorPage from "@/features/teklif/TeklifEditorPage";
 import KanbanPage from "@/features/teklif/KanbanPage";
 import MusteriListPage from "@/features/musteri/MusteriListPage";
-import KullaniciListPage from "@/features/admin/KullaniciListPage";
-import RollerPage from "@/features/admin/RollerPage";
+import AyarlarPage from "@/features/admin/AyarlarPage";
 import FiyatYonetimiPage from "@/features/admin/FiyatYonetimiPage";
 import RaporlarPage from "@/features/rapor/RaporlarPage";
 import { ToastContainer } from "@/components/ui/Toast";
@@ -22,11 +21,13 @@ function RequireAuth({ children }: { children: React.ReactElement }) {
   return children;
 }
 
-/** Belirli bir izin olmadan erişilemeyen route'lar için guard. */
-function RequirePermission({ izin, children }: { izin: string; children: React.ReactElement }) {
+/** Belirli izin(ler) olmadan erişilemeyen route'lar için guard. izin string veya dizi (herhangi biri yeterli). */
+function RequirePermission({ izin, children }: { izin: string | string[]; children: React.ReactElement }) {
   const kullanici = useAuth((s) => s.kullanici);
   if (!kullanici) return <Navigate to="/login" replace />;
-  if (!(kullanici.izinler ?? []).includes(izin)) return <Navigate to="/" replace />;
+  const sahip = kullanici.izinler ?? [];
+  const gerekli = Array.isArray(izin) ? izin : [izin];
+  if (!gerekli.some((k) => sahip.includes(k))) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -53,8 +54,10 @@ export default function App() {
           <Route path="kanban" element={<RequirePermission izin="teklif.read"><KanbanPage /></RequirePermission>} />
           <Route path="musteriler" element={<RequirePermission izin="firma.read"><MusteriListPage /></RequirePermission>} />
           <Route path="raporlar" element={<RequirePermission izin="rapor.read"><RaporlarPage /></RequirePermission>} />
-          <Route path="kullanicilar" element={<RequirePermission izin="kullanici.manage"><KullaniciListPage /></RequirePermission>} />
-          <Route path="roller" element={<RequirePermission izin="rol.manage"><RollerPage /></RequirePermission>} />
+          <Route path="ayarlar" element={<RequirePermission izin={["kullanici.manage", "rol.manage"]}><AyarlarPage /></RequirePermission>} />
+          {/* Eski rotalar → Ayarlar'a yönlendir */}
+          <Route path="kullanicilar" element={<Navigate to="/ayarlar" replace />} />
+          <Route path="roller" element={<Navigate to="/ayarlar" replace />} />
           <Route path="fiyatlar" element={<RequirePermission izin="fiyat.read"><FiyatYonetimiPage /></RequirePermission>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
