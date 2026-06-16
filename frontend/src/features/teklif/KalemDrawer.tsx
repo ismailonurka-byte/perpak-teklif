@@ -217,11 +217,14 @@ export default function KalemDrawer({ open, onClose, onSave, initial, siraNo }: 
               degerler={spec}
               onChange={(k, v) => setSpec((p) => {
                 const next = { ...p, [k]: v };
-                // Roland makine seçimi → Kalıp TL + Geçiş Çarpanı varsayılanları
-                // (otomatik gelir ama alanlar düzenlenebilir kalır)
+                // Makine seçimi → Kalıp TL + Geçiş Çarpanı makine tanımından otomatik gelir
+                // (alanlar düzenlenebilir kalır; formül değişmez)
                 if (k === "baski_turu") {
-                  if (v === "ROLAND_700") { next.baski_kalip_tl = 1450; next.gecis_carpan = 0.40; }
-                  else if (v === "ROLAND_800") { next.baski_kalip_tl = 2000; next.gecis_carpan = 0.55; }
+                  const mk = master?.baski_turu.find((m) => m.kod === v);
+                  if (mk) {
+                    if (typeof mk.baski_kalip_tl === "number") next.baski_kalip_tl = mk.baski_kalip_tl;
+                    if (typeof mk.gecis_carpan === "number") next.gecis_carpan = mk.gecis_carpan;
+                  }
                 }
                 return next;
               })}

@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.api.v1 import auth, kullanici, firma, teklif, master, hesaplama, fiyat, rapor, rol
+from app.api.v1 import auth, kullanici, firma, teklif, master, hesaplama, fiyat, rapor, rol, tanim
 
 
 @asynccontextmanager
@@ -54,6 +54,7 @@ app.include_router(hesaplama.router, prefix="/api/v1/hesaplama", tags=["hesaplam
 app.include_router(fiyat.router, prefix="/api/v1/fiyat", tags=["fiyat"])
 app.include_router(rapor.router, prefix="/api/v1/rapor", tags=["rapor"])
 app.include_router(rol.router, prefix="/api/v1/rol", tags=["rol"])
+app.include_router(tanim.router, prefix="/api/v1/tanim", tags=["tanim"])
 
 
 @app.get("/health")

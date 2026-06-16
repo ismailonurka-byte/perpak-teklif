@@ -33,9 +33,10 @@ GRAMAJLAR = [160, 180, 200, 210, 230, 250, 300, 350, 400, 450]
 
 # OFSET 'baski_turu' lookup'ının TEK tüketicisidir → yalnız ofset makineleri.
 # (FLEKSO kendi 'baski_durum', KOLİ 'baskili_baskisiz' kullanır; Baskısız OFSET'te istenmiyor.)
+# (kod, ad, tip, baski_kalip_tl, gecis_carpan) — makine bazlı varsayılanlar
 BASKI_TURU = [
-    ("ROLAND_700", "Roland 700 (Ofset)"),
-    ("ROLAND_800", "Roland 800 (Ofset)"),
+    ("ROLAND_700", "Roland 700 (Ofset)", "DAHILI", 1450, 0.40),
+    ("ROLAND_800", "Roland 800 (Ofset)", "DAHILI", 2000, 0.55),
 ]
 
 RENKLER = [
@@ -65,21 +66,22 @@ RENKLER = [
     ("BORDO", "Bordo", "#880E4F"),
 ]
 
+# (kod, ad, tl_m2 sabit fiyat). Fiyatlar Excel'den; verilmeyenler 0 (Fiyatlar ekranından girilir).
 BASKI_SONRASI = [
-    ("YOK", "Yok"),
-    ("LAK", "Lak"),
-    ("SIVAMA", "Sıvama"),
-    ("DISPERSIYON_LAK", "Dispersiyon Lak"),
-    ("UV_LAK", "UV Lak"),
-    ("PARLAK_SELEFON", "Parlak Selefon"),
-    ("MAT_SELEFON", "Mat Selefon"),
-    ("HIGHLOSS", "Highloss"),
-    ("KISMI_LAK", "Kısmi Lak"),
-    ("TERMO_LAK", "Termo Lak"),
-    ("GOFRE", "Gofre"),
-    ("ASETAT", "Asetat"),
-    ("SELEFON_PENCERE_KESIM", "Selefon + Pencere Kesim"),
-    ("KUS_GOZU", "Kuş Gözü"),
+    ("YOK", "Yok", 0),
+    ("LAK", "Lak", 2.20),
+    ("SIVAMA", "Sıvama", 2.85),
+    ("DISPERSIYON_LAK", "Dispersiyon Lak", 2.20),
+    ("UV_LAK", "UV Lak", 3.30),
+    ("PARLAK_SELEFON", "Parlak Selefon", 3.80),
+    ("MAT_SELEFON", "Mat Selefon", 3.95),
+    ("HIGHLOSS", "Highloss", 2.85),
+    ("KISMI_LAK", "Kısmi Lak", 0),
+    ("TERMO_LAK", "Termo Lak", 0),
+    ("GOFRE", "Gofre", 0),
+    ("ASETAT", "Asetat", 0),
+    ("SELEFON_PENCERE_KESIM", "Selefon + Pencere Kesim", 0),
+    ("KUS_GOZU", "Kuş Gözü", 0),
 ]
 
 EKLENTILER = [
@@ -162,9 +164,10 @@ KUTU_OFSET_SEMA = {
         {
             "ad": "Ürün Bilgisi",
             "alanlar": [
-                {"key": "bicak_no", "label": "Bıçak No", "tip": "text"},
+                # Tabaka EN/BOY başa alındı: PDF 2'li satır düzeninde aynı satırda yan yana gelsinler.
                 {"key": "tabaka_en", "label": "Tabaka EN (mm)", "tip": "number", "zorunlu": True},
                 {"key": "tabaka_boy", "label": "Tabaka BOY (mm)", "tip": "number", "zorunlu": True},
+                {"key": "bicak_no", "label": "Bıçak No", "tip": "text"},
                 # Açınım EN/BOY iptal — yerine tek "AÇINIM" alanı (manuel rakam = tabakadan çıkan kutu sayısı)
                 {"key": "acinim", "label": "Açınım (adet)", "tip": "number", "zorunlu": True,
                  "aciklama": "Bir tabakadan çıkan kutu sayısı"},
@@ -378,11 +381,14 @@ def main():
             for i, (k, a) in enumerate(KARTON_CINSI)
         ])
         upsert(db, Gramaj, "deger", [{"deger": g, "aktif": True} for g in GRAMAJLAR])
-        upsert(db, BaskiTuru, "kod", [{"kod": k, "ad": a, "aktif": True} for k, a in BASKI_TURU])
+        upsert(db, BaskiTuru, "kod", [
+            {"kod": k, "ad": a, "tip": t, "baski_kalip_tl": kt, "gecis_carpan": gc, "aktif": True}
+            for k, a, t, kt, gc in BASKI_TURU
+        ])
         upsert(db, Renk, "kod", [
             {"kod": k, "ad": a, "hex_kod": h, "aktif": True} for k, a, h in RENKLER
         ])
-        upsert(db, BaskiSonrasi, "kod", [{"kod": k, "ad": a, "aktif": True} for k, a in BASKI_SONRASI])
+        upsert(db, BaskiSonrasi, "kod", [{"kod": k, "ad": a, "tl_m2": p, "aktif": True} for k, a, p in BASKI_SONRASI])
         upsert(db, Eklenti, "kod", [{"kod": k, "ad": a, "aktif": True} for k, a in EKLENTILER])
         upsert(db, AmbalajSekli, "kod", [{"kod": k, "ad": a, "aktif": True} for k, a in AMBALAJ])
         upsert(db, GrafikDurumu, "kod", [{"kod": k, "ad": a, "aktif": True} for k, a in GRAFIK])

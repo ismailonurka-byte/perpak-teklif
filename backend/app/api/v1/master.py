@@ -32,14 +32,19 @@ def hepsi(db: DbSession, _: CurrentUser):
             for r in db.query(OlukluKalite).filter_by(aktif=True).order_by(OlukluKalite.kod).all()
         ],
         "baski_turu": [
-            {"kod": r.kod, "ad": r.ad} for r in db.query(BaskiTuru).filter_by(aktif=True).all()
+            {
+                "kod": r.kod, "ad": r.ad, "tip": r.tip,
+                "baski_kalip_tl": float(r.baski_kalip_tl), "gecis_carpan": float(r.gecis_carpan),
+            }
+            for r in db.query(BaskiTuru).filter_by(aktif=True).all()
         ],
         "renk": [
             {"kod": r.kod, "ad": r.ad, "hex": r.hex_kod}
             for r in db.query(Renk).filter_by(aktif=True).all()
         ],
         "baski_sonrasi_islem": [
-            {"kod": r.kod, "ad": r.ad} for r in db.query(BaskiSonrasi).filter_by(aktif=True).all()
+            {"kod": r.kod, "ad": r.ad, "tl_m2": float(r.tl_m2)}
+            for r in db.query(BaskiSonrasi).filter_by(aktif=True).all()
         ],
         "eklenti": [
             {"kod": r.kod, "ad": r.ad} for r in db.query(Eklenti).filter_by(aktif=True).all()

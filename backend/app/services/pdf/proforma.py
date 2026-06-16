@@ -82,7 +82,15 @@ def _kagit_kalitesi(k) -> str:
     sp = k.spesifikasyon or {}
     tip = k.kalem_tipi or ""
     if tip == "KUTU_OFSET":
-        return _human(sp.get("karton_cinsi")) or "—"
+        # Karton cinsi + oluklu cinsi birlikte gösterilir (ofset kutu oluklu üstüne kaşelenir).
+        parcalar = []
+        karton = _human(sp.get("karton_cinsi"))
+        if karton:
+            parcalar.append(karton)
+        oluklu = sp.get("oluklu_cinsi")
+        if oluklu:
+            parcalar.append(str(oluklu))
+        return " / ".join(parcalar) or "—"
     # KUTU_FLEKSO ve KOLI için oluklu kalitesi
     return sp.get("oluklu_kalite") or "—"
 
@@ -182,12 +190,39 @@ DETAY_ETIKET: dict[str, str] = {
 _DETAY_ORAN = {"kar_orani"}
 _DETAY_ADET = {"montaj_kutu_adet", "siparis_miktari", "tabaka_adet", "acinim", "ek_gecis_adedi"}
 
+# tip="number" olsa da PDF'de para birimi (₺) ile gösterilecek gerçek para alanları.
+# NOT: "gecis_carpan" (Geçiş Çarpanı) bir çarpandır, para değildir — listede YOK.
+PARA_ALANLAR: set[str] = {
+    "karton_m2_fiyat", "oluklu_m2_fiyat", "baski_kalip_tl", "boya_tl",
+    "kesim_tl", "safya_m2_fiyat", "klise_gideri", "bicak_gideri",
+    "dikis_fiyati", "diger_gider",
+}
+
+
+def _to_number(v):
+    """Sayı veya '6,7' / '43.26' gibi metin değeri float'a çevirir; olmazsa None."""
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            return float(v.strip().replace(",", "."))
+        except ValueError:
+            return None
+    return None
+
 
 def _deger_metni(alan: dict, value) -> str:
     """Bir spec alanını insan-okur metne çevirir (alan tipine göre)."""
     tip = alan.get("tip")
     if value in (None, "", []):
         return "—"
+    # Para alanları: tipi "number" olsa bile ₺ ile göster (çarpanlar hariç).
+    if alan.get("key") in PARA_ALANLAR:
+        num = _to_number(value)
+        if num is not None:
+            return _tl(num)
     if tip in ("lookup",):
         return _human(str(value))
     if tip in ("renk_multi", "lookup_multi"):

@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.core.deps import DbSession, require_permission
-from app.db.models import BirimFiyatGenel, BirimFiyatOfset, GecisCarpan, Kullanici
+from app.db.models import BaskiSonrasi, BirimFiyatGenel, BirimFiyatOfset, GecisCarpan, Kullanici
 
 router = APIRouter()
 
@@ -138,3 +138,41 @@ def carpan_sil(renk_sayisi: int, db: DbSession, _: Kullanici = Depends(require_p
         raise HTTPException(status_code=404, detail="Satır bulunamadı")
     db.delete(row)
     db.commit()
+
+
+# ─── İLAVE İŞLEM SABİT FİYATLARI (Lak, Sıvama, Selefon ...) ──────────────
+# baski_sonrasi_islem.tl_m2 — teklifte otomatik dolan, düzenlenebilir master fiyat.
+
+class IlaveFiyatSatir(BaseModel):
+    kod: str
+    ad: str
+    tl_m2: Decimal
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/ilave-islem", response_model=list[IlaveFiyatSatir])
+def ilave_islem_liste(db: DbSession, _: Kullanici = Depends(require_permission("fiyat.read"))):
+    # "YOK" hariç tüm aktif ilave işlemler
+    return (
+        db.query(BaskiSonrasi)
+        .filter(BaskiSonrasi.aktif.is_(True), BaskiSonrasi.kod != "YOK")
+        .order_by(BaskiSonrasi.ad)
+        .all()
+    )
+
+
+@router.put("/ilave-islem/{kod}", response_model=IlaveFiyatSatir)
+def ilave_islem_kaydet(
+    kod: str,
+    tl_m2: Decimal,
+    db: DbSession,
+    _: Kullanici = Depends(require_permission("fiyat.update")),
+):
+    row = db.query(BaskiSonrasi).filter(BaskiSonrasi.kod == kod).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    row.tl_m2 = tl_m2
+    db.commit()
+    db.refresh(row)
+    return row

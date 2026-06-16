@@ -24,6 +24,9 @@ const NAV: NavGirdi[] = [
   {
     tip: "grup", label: "Tanımlar", icon: Database, cocuklar: [
       { to: "/musteriler", label: "Müşteriler", izin: "firma.read" },
+      { to: "/baski-makineleri", label: "Baskı Makineleri", izin: "master.read" },
+      { to: "/karton-cinsi", label: "Karton Malzeme Cinsi", izin: "master.read" },
+      { to: "/oluklu-cinsi", label: "Oluklu Cinsi", izin: "master.read" },
       { to: "/fiyatlar", label: "Fiyatlar", izin: "fiyat.read" },
     ],
   },

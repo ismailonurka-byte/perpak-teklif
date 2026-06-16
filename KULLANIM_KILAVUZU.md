@@ -63,14 +63,39 @@ Tasarım **otomatik olarak ekran boyutuna uyum sağlar**. Mobilde menü üst tar
 
 ## 2. İlk Kurulum (Bilgisayar Yöneticisi İçin)
 
-Bu bölüm yalnızca sistemi ilk kez kurarken yapılır.
+Bu bölüm yalnızca sistemi ilk kez kurarken yapılır. **İki kurulum yolu** vardır:
 
-### 2.1 Gereksinimler
+- **A) Windows sunucu / ofis bilgisayarı (önerilen on-prem yöntem):** Tek tık otomatik kurulum (`deploy/windows/kurulum.bat`). Docker gerekmez.
+- **B) Docker (bulut / demo ortamı):** Geliştirme veya bulut sunucu için.
+
+### 2.0 Windows Otomatik Kurulum (Önerilen)
+
+Ofiste bir Windows bilgisayarı/sunucuyu sistemin "ev sahibi" yapacaksanız bu en kolay yoldur.
+
+**Adımlar:**
+1. Proje paketindeki **`deploy/windows`** klasörüne girin.
+2. **`kurulum.bat`** dosyasına **sağ tıklayın → "Yönetici olarak çalıştır"**. (Yönetici onayı çıkarsa "Evet" deyin.)
+3. Kurulum penceresi her şeyi otomatik yapar:
+   - **Python 3.12** ve **PostgreSQL 16**'yı (bilgisayarda yoksa) indirip kurar,
+   - veritabanını ve `admin` kullanıcısını oluşturur, master verileri yükler,
+   - Windows güvenlik duvarında **8000 portunu** açar,
+   - bilgisayar her açıldığında otomatik başlayan bir **"Vanto"** servisi kurar.
+4. Bittiğinde pencerede erişim adresi yazar.
+
+**Kurulumdan sonra erişim:** Aynı ağdaki herhangi bir bilgisayarın tarayıcısından:
+- **http://<sunucu-ip>:8000** (örn. `http://192.168.1.50:8000`)
+- Giriş: **admin / admin123** (ilk girişte mutlaka şifreyi değiştirin — Bölüm 3.2).
+
+> 💡 **Durdur / başlat:** Görev Zamanlayıcı'daki **"Vanto"** görevinden ya da `deploy/windows/baslat.bat` ile yönetebilirsiniz. Sunucu yeniden başlasa bile servis otomatik kalkar.
+
+> 🌐 **Alan adı (opsiyonel):** Sisteme `teklif.firmaniz.com` gibi bir alan adıyla erişmek isterseniz, IIS üzerinden **reverse proxy** kurulabilir — hazır örnek yapılandırma `deploy/iis/web.config` dosyasındadır.
+
+### 2.1 Gereksinimler (Docker yöntemi)
 - **Docker Desktop** kurulu olmalı: https://www.docker.com/products/docker-desktop/
 - Bilgisayarda en az 4 GB boş RAM
 - 5 GB boş disk alanı
 
-### 2.2 Sistemi Başlatma
+### 2.2 Sistemi Başlatma (Docker)
 
 Terminal'i (macOS) veya PowerShell'i (Windows) açın ve şu komutları sırayla yazın:
 
@@ -213,6 +238,8 @@ Sol menü → **Müşteriler**
 
 > 💡 **Pratik İpucu:** Acele eden müşteri için sadece "Firma Adı"nı yazıp kaydetin. Detayları sonra doldurmak için tekrar dönebilirsiniz.
 
+> 🔒 **Açılır pencereler (pop-up) hakkında:** Müşteri formu gibi tüm açılır pencereler **boşluğa / arka plana tıklayınca kapanmaz**. Yanlışlıkla dışarı tıklayıp doldurduğunuz bilgileri kaybetmemeniz için pencere yalnızca **"İptal"**, **X** veya **Esc** ile kapanır.
+
 ### 5.2 Mevcut Müşteriyi Düzenleme
 
 **Adım 1:** Listeden ilgili satıra bakın. Sağ tarafında **kalem ikonu** (✏️) vardır.
@@ -232,17 +259,66 @@ Listede çok müşteri varsa aramak gerekir.
 - "acme" yazınca "Acme Ambalaj", "Acme Tekstil", "Acmesan Ltd." gibi içinde "acme" geçen tüm firmalar gelir.
 - "ali" yazsanız "Alibaba A.Ş." gelir ama yetkili adı "Ali" olan firmalar gelmez (sadece firma adında arar).
 
-### 5.4 Müşteriyi Pasif Yapma
+### 5.4 Müşteriyi Pasif Yapma / Silme
 
-Bir müşteriyle ilişki bittiyse (ödemiyor, kapandı vb.) **silmek yerine pasif yapın**:
+Müşteri listesinde her satırın sağında iki işlem vardır: **"Pasif yap / Aktif et"** ve **"Sil"**. Liste üstündeki **"Pasifleri göster"** filtresiyle pasif müşterileri de görebilirsiniz (varsayılan olarak yalnız aktifler listelenir).
 
-**Adım 1:** Müşteriyi düzenle penceresini açın.
-**Adım 2:** En altta **"Aktif"** kutucuğu vardır, **işareti kaldırın**.
-**Adım 3:** Kaydet.
+**Pasif yapma (önerilen — geçmişi korur):**
+Bir müşteriyle ilişki bittiyse (ödemiyor, kapandı vb.) satırdaki **"Pasif yap"** düğmesine basın (ya da düzenle penceresinde "Aktif" işaretini kaldırıp kaydedin). Artık o müşteri yeni teklif açarken dropdown'da görünmez. **Ama eski teklifleri sağlam kalır**, geçmişe bakabilirsiniz. Tekrar aktif etmek için "Aktif et" düğmesini kullanın.
 
-Artık o müşteri yeni teklif açarken dropdown'da görünmez. **Ama eski teklifleri sağlam kalır**, geçmişe bakabilirsiniz.
+**Kalıcı silme (akıllı):**
+Satırdaki **"Sil"** düğmesi müşteriyi kalıcı kaldırır. Sistem **akıllı davranır**:
+- Müşterinin **hiç teklifi yoksa** → kalıcı olarak silinir.
+- Müşterinin **en az bir teklifi varsa** → kalıcı silinemez; sistem uyarır ve **"pasif yapın"** önerir (geçmiş tekliflerin müşteri bilgisi bozulmasın diye).
 
-> ⚠️ **Müşteri silme yoktur.** Yanlışlıkla veri kaybetmeyi önlemek için sistem yalnız "pasif yap" özelliği sunar.
+> 💡 **Pratik kural:** Geçmişi olan bir müşteriyi her zaman **pasif** yapın; sil düğmesini yalnızca yanlışlıkla eklenmiş, hiç teklifi olmayan kayıtlar için kullanın.
+
+### 5.5 Tanımlar Menüsü — Genel Bakış (Yönetici)
+
+Sol menüdeki **"Tanımlar"** grubu, sistemin teklif formundaki açılır listelerini ve fiyatlarını yönettiğiniz yerdir (yönetici yetkisi gerekir). İçinde şunlar bulunur:
+
+- **Müşteriler** (Bölüm 5)
+- **Baskı Makineleri** (Bölüm 5.6)
+- **Karton Malzeme Cinsi** (Bölüm 5.7)
+- **Oluklu Cinsi** (Bölüm 5.7)
+- **Fiyatlar** (Bölüm 13.x — birim fiyatların yönetildiği ekran)
+
+Buradaki bir değişiklik (yeni makine, yeni karton cinsi vb.) **anında** teklif formundaki ilgili dropdown'a yansır.
+
+> 🔒 Tüm bu sayfalardaki ekleme/düzenleme pencereleri de boşluğa tıklayınca kapanmaz; **İptal / X / Esc** ile kapanır.
+
+### 5.6 Baskı Makineleri (Tanımlar)
+
+Sol menü → **Tanımlar → Baskı Makineleri**
+
+Ofset kutuların basıldığı makineleri buradan yönetirsiniz. Varsayılan olarak **Roland 700** ve **Roland 800** tanımlıdır. Her makinenin şu bilgileri vardır:
+
+| Alan | Açıklama |
+|---|---|
+| **Ad** | Makinenin adı (örn. "Roland 700") |
+| **Tip** | **Dahili** (kendi makinemiz) veya **Fason** (dış matbaa). **Yalnız bilgi amaçlıdır — fiyatı etkilemez.** |
+| **Baskı Kalıp TL** | Bu makineyle çalışırken teklife **otomatik gelecek** kalıp ücreti |
+| **Geçiş Çarpanı** | Bu makineyle çalışırken teklife **otomatik gelecek** geçiş çarpanı |
+
+**Varsayılan değerler:**
+- Roland 700 → Dahili, Baskı Kalıp TL **1450**, Geçiş Çarpanı **0,40**
+- Roland 800 → Dahili, Baskı Kalıp TL **2000**, Geçiş Çarpanı **0,55**
+
+Teklif formunda bir makine seçtiğinizde **Baskı Kalıp TL** ve **Geçiş Çarpanı** alanları bu tanımdan otomatik dolar (teklif içinde yine elle değiştirilebilir). Dropdown'da makineler "**Roland 700 (Ofset) — Dahili**" biçiminde, dahili/fason görünecek şekilde listelenir.
+
+> 💡 Bir makineyi listeden kaldırırsanız yeni tekliflerde görünmez; eski tekliflerin makine bilgisi korunur.
+
+### 5.7 Karton Malzeme Cinsi & Oluklu Cinsi (Tanımlar)
+
+Bu iki liste de artık yöneticide **Tanımlar** altından yönetilir (eskiden yalnız kurulum verisiydi). Değişiklikler teklif formundaki dropdown'lara **anında** yansır.
+
+**Tanımlar → Karton Malzeme Cinsi:**
+- Yeni karton cinsi **ekleyebilir**, adını **düzenleyebilir**, listeden **kaldırabilirsiniz**.
+
+**Tanımlar → Oluklu Cinsi:**
+- Her oluklu kaydının: **Kod** (örn. "T090/S080/ - E"), **Tip** (E / B / C / BC) ve isteğe bağlı **Açıklama** alanı vardır.
+- Yeni kayıt **ekleyebilir** ve **kaldırabilirsiniz**.
+- **Kod sabittir** — bir kodu değiştirmek isterseniz kaydı kaldırıp yeniden ekleyin.
 
 ---
 
@@ -304,6 +380,8 @@ Sayfanın üstünde bir kart vardır. **Soldan sağa, yukarıdan aşağıya** do
 
 **Adım 2:** Ekranın büyük bir kısmını kaplayan bir pencere açılır. Başlık: "Yeni Kalem". Bu, ürün ekleme penceresidir.
 
+> 🔒 **Not:** Bu pencere **boşluğa tıklayınca kapanmaz** (girdiğiniz onca veri kaybolmasın diye). Kapatmak için **"İptal"**, **X** ya da **Esc** kullanın.
+
 #### Adım 3 — Kalem Tipini Seçin (en üstte):
 
 Dropdown'a tıklayın. 3 seçenek gelir:
@@ -353,19 +431,20 @@ Burada **form alanları seçilen tipe göre kendiliğinden değişir**. Aşağı
 - **Oluklu TL/m²**: Seçtiğiniz oluklunun m² fiyatı. Oluklu yoksa boş/0 bırakın.
 
 **Grup: Baskı**
-- **Baskı Türü**: Roland 700 veya Roland 800. (Daha büyük tabaka için 800.)
+- **Baskı Makinesi**: Dropdown'dan baskının yapılacağı makineyi seçin (örn. "Roland 700 (Ofset) — Dahili", "Roland 800 (Ofset) — Dahili"). Etikette makinenin **Dahili** (kendi makinemiz) mi yoksa **Fason** (dış matbaa) mı olduğu görünür. **Önemli:** Dahili/Fason yalnız **bilgi** amaçlıdır, fiyatı etkilemez. Makine listesi yöneticide **Tanımlar → Baskı Makineleri**'nden yönetilir (Bölüm 5.6).
+  - Makineyi seçtiğinizde **Baskı Kalıp TL** ve **Geçiş Çarpanı** alanları, o makinenin tanımındaki değerlerle **otomatik dolar**. İsterseniz bu teklif için üzerine yazıp değiştirebilirsiniz.
 - **Renk Sayısı**: 0–6 arası sayı. CMYK 4 renktir, ekstra spot eklerseniz 5–6.
 - **Renk Seçimi**: Renk sayısı kadar rengi paletten seçin (CMYK + 4 renk seçilince Cyan/Magenta/Sarı/Siyah otomatik gelir). Proformada renk bilgisi olarak görünür.
-- **Baskı Kalıp TL**: Kalıp ücreti — kalıp gideri **burada** girilir (Sevkiyat'ta ayrıca yok).
+- **Baskı Kalıp TL**: Kalıp ücreti. **Seçtiğiniz makineden otomatik gelir** (Sevkiyat'ta ayrıca yok); gerekiyorsa düzenleyin.
 - **Boya TL**: Boya/mürekkep ek masraf varsa.
-- **Geçiş Çarpanı** (opsiyonel): Boş bırakırsanız renk sayısına göre tablodan otomatik gelir; istisnai durumda elle yazıp değiştirebilirsiniz.
+- **Geçiş Çarpanı**: **Seçtiğiniz makineden otomatik gelir**; istisnai durumda elle yazıp değiştirebilirsiniz. (Not: Renk sayısı, çarpandan bağımsız olarak baskı maliyetini doğrudan etkiler — bu değişmedi.)
 - **Baskı Adedi** (🔵 otomatik): Tabaka Adedi ile aynı.
 - **Ek Geçiş Adedi** (🔵 otomatik): Baskı adedi 3000'in üstündeyse fark otomatik (3000'e kadar 0).
 
 **Grup: Kesim, Yapıştırma & İlave İşlemler**
 - **Kesim TL (tabaka başına)**: Tabaka başına sabit kesim ücreti (örn: 2,25). Kesim yoksa boş bırakın.
 - **Yapıştırma TL/adet**: Kutu başına yapıştırma ücreti (örn: 0,85). Yoksa boş bırakın.
-- **Lak / Sıvama vb. & Fiyatları**: İstediğiniz işlemi (Lak, Sıvama, UV Lak, Mat Selefon, Gofre, Pencere Kesim…) işaretleyip yanına **TL/m²** fiyatını yazın — fiyatlar elle girilir, müdahaleye açıktır. (Eski Lak/Sıvama kutucukları kaldırıldı; hepsi burada.)
+- **Lak / Sıvama vb. & Fiyatları**: İstediğiniz işlemi (Lak, Sıvama, UV Lak, Mat Selefon, Gofre, Pencere Kesim…) işaretleyin. İşaretlediğinizde yanındaki **TL/m²** fiyatı **merkezi fiyat listesinden (Fiyatlar → İlave İşlem Fiyatları) otomatik dolar**. Gerekiyorsa bu teklif için üzerine yazıp değiştirebilirsiniz; girdiğiniz fiyat siparişe de taşınır. (Eski Lak/Sıvama kutucukları kaldırıldı; hepsi burada.)
 - **Eklenti**: KILITLI / YAPISTIRMA / DIKIS / YOK
 
 **Grup: Sevkiyat & Diğer**
@@ -398,8 +477,7 @@ En sade form:
 - **Renk Sayısı** + **Baskı Renkleri** (paletten renk seçimi)
 - **Eklenti**: YAPISTIRMA veya DIKIS
 - **Dikiş Fiyatı (TL)**: Toplam dikiş ücreti (tek rakam). Yapıştırma seçtiyseniz 0. (Eski "Dikiş Adedi × birim" yerine doğrudan fiyat.)
-- **İlave İşlemler & Fiyatları**: İşlem seçip yanına **TL** (koli başına) fiyat yazın.
-- **Birim Klişe/Bıçak Gideri, Kâr Oranı**
+- **Klişe Gideri / Bıçak Gideri**: Toplam tutar — sipariş adedine bölünür. **Kâr Oranı**: varsayılan %20. (Not: Lak/Sıvama gibi İlave İşlemler koli formundan kaldırıldı; yalnız Ofset Kutu'da kullanılır.)
 
 #### Adım 6 — Adet ve Birim Fiyat
 
@@ -434,27 +512,32 @@ Sağ alttaki **mavi "Satırı Kaydet"** butonuna basın. Pencere kapanır, satı
 > 3. Sayıların nasıl davrandığını izleyin.
 > 4. Çalışmasından emin olduktan sonra gerçek değerleri girin.
 
-### 6.4 Satırı Düzenleme / Silme
+### 6.4 Satırı (Kalemi) Düzenleme / Silme
 
 - Liste'de satırın sağında **kalem ikonu** = düzenle.
-- **Çöp kutusu ikonu** = sil. Onay sorulur.
+- **Çöp kutusu ikonu** = o kalemi (satırı) teklifin içinden siler. Onay sorulur.
+
+> ℹ️ Bu silme **yalnızca teklif içindeki tek bir kalem** içindir. Teklifin tamamını kaldırmak için silme yoktur — bunun yerine **"İptal Et"** kullanılır (bkz. Bölüm 6.6).
 
 ### 6.5 Toplamlar
 
 Pencerenin altında **Ara Toplam → KDV → Genel Toplam** otomatik hesaplanır. KDV oranı varsayılan %20.
 
-### 6.6 Teklifi Kaydetme
+### 6.6 Teklifi Kaydetme ve İptal Etme
 
-Üç düğme:
+Düğmeler:
 - **Kaydet** — Taslak olarak veritabanına yazar.
 - **Teklif Ver** — Durumu "Teklif Verildi"ye çevirir + kaydeder. (Yalnız Taslak durumundayken görünür.)
 - **Siparişe Dönüştür →** — Müşteri kabul ettiğinde (KABUL durumundayken) bu düğme görünür; tıklayınca teklif resmi "Sipariş" durumuna geçer ve üretim sürecine işaret eder.
+- **İptal Et** — Teklif düzeyinde **silme yoktur**; bunun yerine **"İptal Et"** düğmesi vardır. Tıklayıp onayladığınızda teklifin durumu **İPTAL**'e geçer. **Kayıt silinmez** — geçmişte ve raporlarda izi kalır, yalnızca artık aktif iş olarak görünmez. (Daha önce iptal edilmiş bir teklifte bu düğme görünmez.)
 
 İlk kaydedişte sistem otomatik bir **teklif numarası** üretir (örn: `TKL-26-0001`).
 
 ### 6.7 PDF İndirme
 
 Kaydettikten sonra üstteki **PDF** düğmesi tıklanabilir hale gelir. Tıklayın → yatay A4 proforma PDF inecektir. Doğrudan müşteriye gönderilebilir.
+
+> 📄 **PDF içeriği hakkında:** Proformada para alanlarında **₺** simgesi gösterilir. Ofset kutuda **"Kağıt Kalitesi"** sütununda karton ve oluklu bilgisi **birlikte** yazılır. Siparişe dönüşen teklifin sipariş formunda **Tabaka EN/BOY yan yana** gösterilir ve para alanlarında **₺** simgesi yer alır.
 
 ### 6.8 Durum Akışı
 
@@ -735,18 +818,25 @@ docker compose exec -T db psql -U perpak -d perpak_teklif < yedek_20260521.sql
 
 ### 12.3 Birim Fiyat Güncelleme
 
-Kağıt zammı geldiğinde fiyat tablosunu güncellemek için iki yol:
+Kağıt zammı geldiğinde fiyatları güncellemek için **iki yol** vardır.
 
-**Yol A — Hızlı (terminal'den):**
+**Yol A — Fiyatlar ekranından (ANA YÖNTEM, önerilen):**
+Yönetici olarak sol menü → **Tanımlar → Fiyatlar** sayfasını açın. Bu ekranda şu bölümler bulunur:
+- **Genel Birim Fiyatlar** — Lak, Sıvama, Kesim, Yapıştırma, flekso baski/kesim/yapıştırma, koli dikiş gibi merkezi TL/m² ve TL/adet değerleri.
+- **Gramajlar (Ofset)** — kullanılabilir gramaj değerlerinin listesi (yalnız liste; baskı TL'si burada değildir — bkz. not).
+- **Geçiş Çarpanı** — renk sayısı bazlı yedek çarpan tablosu.
+- **İlave İşlem Fiyatları** — Lak, Sıvama, UV Lak, Selefon vb. işlemlerin merkezi TL/m² fiyatları. (Teklifte işlem işaretlenince fiyat buradan otomatik dolar.)
+
+> ℹ️ **Baskı Kalıp TL ve Geçiş Çarpanı** artık fiyat tablosunda değil, **makine bazlıdır** — bunları **Tanımlar → Baskı Makineleri**'nden güncelleyin (Bölüm 5.6). Eski "gramaja göre ofset baskı TL" tablosu kullanımdan kalkmıştır.
+
+**Yol B — Terminalden SQL (alternatif / ileri düzey):**
 ```bash
 docker compose exec db psql -U perpak -d perpak_teklif
 # Sonra:
 UPDATE birim_fiyat_genel SET lak_tl_m2 = 2.50 WHERE id = 1;
-UPDATE birim_fiyat_ofset SET baski_tl = 1500 WHERE gramaj = 180;
 \q
 ```
-
-**Yol B — UI'dan (ileride eklenir):** Yönetici → Ayarlar → Birim Fiyatlar sayfası eklenince oradan.
+Bu yöntem yalnızca Fiyatlar ekranına erişemediğiniz acil durumlar içindir; normalde **Yol A**'yı kullanın.
 
 > Birim fiyat değiştirildiğinde **eski teklifler** etkilenmez (her teklifte hesap detayı snapshot olarak saklanır). Yalnız yeni teklifler için geçerli olur.
 
@@ -911,9 +1001,9 @@ Sistemi öğrenmenin en hızlı yolu **somut bir senaryo üzerinden geçmek**. A
    - Karton Cinsi: **Kuşesiz Kroma**
    - Gramaj: **250**
    - Karton TL/m²: 18,50
-   - Baskı Türü: **Roland 700**
+   - Baskı Makinesi: **Roland 700 (Ofset) — Dahili** (seçince Baskı Kalıp TL ve Geçiş Çarpanı otomatik dolar)
    - Renk Sayısı: 4
-   - Baskı Kalıp TL: 750
+   - Baskı Kalıp TL: 750 (makineden gelen değeri bu örnek için değiştirebilirsiniz)
    - Baskı Adedi: 10000
    - Lak: ☑ (işaretleyin)
    - Eklenti: **Yapıştırma**
@@ -1098,7 +1188,7 @@ Sistemden maksimum verim almak için aşağıdaki rutini önereyim:
 
 ## 19. Sonuç ve Yardım
 
-Bu kılavuzu sonuna kadar okuduysanız sistemi rahatlıkla kullanabilirsiniz. **Önemli bir nokta**: bir özelliği test etmekten korkmayın — yanlış bir teklif açtıysanız "İptal" durumuna alın, silinmesi gerekiyorsa yönetici yardımıyla taslakları silebilir.
+Bu kılavuzu sonuna kadar okuduysanız sistemi rahatlıkla kullanabilirsiniz. **Önemli bir nokta**: bir özelliği test etmekten korkmayın — yanlış bir teklif açtıysanız üstteki **"İptal Et"** düğmesiyle İPTAL durumuna alın (teklif silinmez, izi raporlarda kalır). Teklif içindeki tek bir hatalı kalemi ise çöp kutusu ikonuyla kaldırabilirsiniz.
 
 ### Eğitim Sırası Önerisi (yeni kullanıcı için)
 
@@ -1128,7 +1218,7 @@ Bu kılavuzu sonuna kadar okuduysanız sistemi rahatlıkla kullanabilirsiniz. **
 
 ---
 
-**Son güncelleme:** 2026-05-21
+**Son güncelleme:** 2026-06-16
 **Sürüm:** 0.1.0
 **Belge sahibi:** PERPAK Ambalaj San. Tic. Ltd. Şti.
 **Belge türü:** Kullanım Kılavuzu + Kullanıcı Eğitim Materyali

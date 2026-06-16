@@ -88,9 +88,9 @@ export type MasterData = {
   karton_cinsi: { kod: string; ad: string }[];
   gramaj: { deger: number }[];
   oluklu_kalite: { kod: string; tip: string; aciklama?: string }[];
-  baski_turu: { kod: string; ad: string }[];
+  baski_turu: { kod: string; ad: string; tip?: string; baski_kalip_tl?: number; gecis_carpan?: number }[];
   renk: { kod: string; ad: string; hex?: string | null }[];
-  baski_sonrasi_islem: { kod: string; ad: string }[];
+  baski_sonrasi_islem: { kod: string; ad: string; tl_m2?: number }[];
   eklenti: { kod: string; ad: string }[];
   ambalaj_sekli: { kod: string; ad: string }[];
   grafik_durumu: { kod: string; ad: string }[];

@@ -1,23 +1,28 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Edit, Building2 } from "lucide-react";
+import { Plus, Search, Edit, Building2, Trash2, Power } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { useIzin } from "@/hooks/useAuth";
 import Modal from "@/components/ui/Modal";
+import Confirm from "@/components/ui/Confirm";
 import type { Firma } from "@/types";
 import { formatDate } from "@/lib/format";
 
 export default function MusteriListPage() {
   const qc = useQueryClient();
   const toast = useToast((s) => s.push);
+  const canEdit = useIzin("firma.update");
   const [q, setQ] = useState("");
+  const [pasifGoster, setPasifGoster] = useState(false);
   const [editing, setEditing] = useState<Firma | "new" | null>(null);
+  const [silOnay, setSilOnay] = useState<Firma | null>(null);
 
   const { data: liste = [], isLoading } = useQuery<Firma[]>({
-    queryKey: ["firma-liste", q],
+    queryKey: ["firma-liste", q, pasifGoster],
     queryFn: async () =>
-      (await api.get("/firma", { params: q ? { q } : {} })).data,
+      (await api.get("/firma", { params: { ...(q ? { q } : {}), aktif_mi: !pasifGoster } })).data,
   });
 
   const kaydet = useMutation({
@@ -33,6 +38,24 @@ export default function MusteriListPage() {
     onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Hata"),
   });
 
+  const aktiflikDegistir = useMutation({
+    mutationFn: async (f: Firma) => (await api.patch(`/firma/${f.id}`, { aktif: !f.aktif })).data,
+    onSuccess: (_d, f) => {
+      qc.invalidateQueries({ queryKey: ["firma-liste"] });
+      toast("ok", f.aktif ? "Müşteri pasife alındı" : "Müşteri aktifleştirildi");
+    },
+    onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Hata"),
+  });
+
+  const sil = useMutation({
+    mutationFn: async (f: Firma) => (await api.delete(`/firma/${f.id}`)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["firma-liste"] });
+      toast("ok", "Müşteri silindi");
+    },
+    onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Silinemedi"),
+  });
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
@@ -40,7 +63,15 @@ export default function MusteriListPage() {
           <h1 className="page-title">Müşteriler</h1>
           <p className="text-sm text-slate-500">{liste.length} kayıt</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <label className="inline-flex items-center gap-2 text-sm text-slate-600 px-1 select-none">
+            <input
+              type="checkbox"
+              checked={pasifGoster}
+              onChange={(e) => setPasifGoster(e.target.checked)}
+            />
+            Pasifleri göster
+          </label>
           <div className="relative">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -80,19 +111,47 @@ export default function MusteriListPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {liste.map((f) => (
-                    <tr key={f.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium">{f.ad}</td>
+                    <tr key={f.id} className={`hover:bg-slate-50 ${!f.aktif ? "opacity-60" : ""}`}>
+                      <td className="px-4 py-3 font-medium">
+                        {f.ad}
+                        {!f.aktif && (
+                          <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            Pasif
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-slate-600">{f.yetkili ?? "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{f.telefon ?? "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{f.email ?? "—"}</td>
                       <td className="px-4 py-3 text-slate-500 text-xs">{formatDate(f.olusturma_ts)}</td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => setEditing(f)}
-                          className="text-slate-400 hover:text-brand-700"
-                        >
-                          <Edit size={16} />
-                        </button>
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            onClick={() => setEditing(f)}
+                            className="p-1.5 text-slate-400 hover:text-brand-700"
+                            title="Düzenle"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          {canEdit && (
+                            <>
+                              <button
+                                onClick={() => aktiflikDegistir.mutate(f)}
+                                className={`p-1.5 ${f.aktif ? "text-slate-400 hover:text-amber-600" : "text-emerald-500 hover:text-emerald-700"}`}
+                                title={f.aktif ? "Pasife al" : "Aktifleştir"}
+                              >
+                                <Power size={16} />
+                              </button>
+                              <button
+                                onClick={() => setSilOnay(f)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600"
+                                title="Sil"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -101,10 +160,39 @@ export default function MusteriListPage() {
             </div>
             <div className="md:hidden divide-y divide-slate-100">
               {liste.map((f) => (
-                <div key={f.id} className="p-4 active:bg-slate-50" onClick={() => setEditing(f)}>
-                  <div className="font-medium">{f.ad}</div>
-                  <div className="text-xs text-slate-500 mt-1">
-                    {f.yetkili ?? "—"} · {f.telefon ?? "—"}
+                <div key={f.id} className={`p-4 ${!f.aktif ? "opacity-60" : ""}`}>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1" onClick={() => setEditing(f)}>
+                      <div className="font-medium">
+                        {f.ad}
+                        {!f.aktif && (
+                          <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            Pasif
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        {f.yetkili ?? "—"} · {f.telefon ?? "—"}
+                      </div>
+                    </div>
+                    {canEdit && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => aktiflikDegistir.mutate(f)}
+                          className={`p-1.5 ${f.aktif ? "text-slate-400" : "text-emerald-500"}`}
+                          title={f.aktif ? "Pasife al" : "Aktifleştir"}
+                        >
+                          <Power size={18} />
+                        </button>
+                        <button
+                          onClick={() => setSilOnay(f)}
+                          className="p-1.5 text-slate-400"
+                          title="Sil"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -112,6 +200,16 @@ export default function MusteriListPage() {
           </>
         )}
       </div>
+
+      <Confirm
+        open={silOnay !== null}
+        onClose={() => setSilOnay(null)}
+        onConfirm={() => silOnay && sil.mutate(silOnay)}
+        title="Müşteriyi sil"
+        message={`"${silOnay?.ad}" müşterisini kalıcı olarak silmek istediğinize emin misiniz? Teklifi olan müşteri silinemez — bu durumda pasife alabilirsiniz.`}
+        confirmText="Sil"
+        danger
+      />
 
       {editing && (
         <MusteriForm

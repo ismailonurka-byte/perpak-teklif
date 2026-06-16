@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Plus, Trash2, Edit, FileDown, Send, Save, ArrowLeft, Building2, ClipboardList, ChevronDown,
+  Plus, Trash2, Edit, FileDown, Send, Save, ArrowLeft, Building2, ClipboardList, ChevronDown, Ban,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -39,6 +39,7 @@ export default function TeklifEditorPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingKalem, setEditingKalem] = useState<TeklifKalem | undefined>();
   const [silOnay, setSilOnay] = useState<number | null>(null);
+  const [iptalOnay, setIptalOnay] = useState(false);
 
   // Veri yükleme
   const { data: teklif } = useQuery<Teklif>({
@@ -120,15 +121,6 @@ export default function TeklifEditorPage() {
       if (isNew) navigate(`/teklifler/${data.id}`, { replace: true });
     },
     onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Kayıt hatası"),
-  });
-
-  const sil = useMutation({
-    mutationFn: async () => (await api.delete(`/teklif/${id}`)).data,
-    onSuccess: () => {
-      toast("ok", "Teklif silindi");
-      qc.invalidateQueries({ queryKey: ["teklif-liste"] });
-      navigate("/teklifler");
-    },
   });
 
   const canPdf = useIzin("teklif.pdf");
@@ -253,6 +245,16 @@ export default function TeklifEditorPage() {
               disabled={kaydet.isPending}
             >
               Siparişe Dönüştür →
+            </button>
+          )}
+          {!isNew && durum !== "IPTAL" && (
+            <button
+              onClick={() => setIptalOnay(true)}
+              disabled={kaydet.isPending}
+              className="btn-ghost text-rose-600 hover:bg-rose-50"
+              title="Teklifi iptal et"
+            >
+              <Ban size={16} /> İptal Et
             </button>
           )}
           {!isNew && (
@@ -469,6 +471,16 @@ export default function TeklifEditorPage() {
         onConfirm={() => silOnay !== null && silKalem(silOnay)}
         message="Bu satırı silmek istediğinize emin misiniz?"
         confirmText="Sil"
+        danger
+      />
+
+      <Confirm
+        open={iptalOnay}
+        onClose={() => setIptalOnay(false)}
+        onConfirm={() => kaydet.mutate("IPTAL")}
+        title="Teklifi iptal et"
+        message="Bu teklif İPTAL durumuna alınacak. Kayıt silinmez, yalnızca durumu iptal olur. Devam edilsin mi?"
+        confirmText="İptal Et"
         danger
       />
     </div>

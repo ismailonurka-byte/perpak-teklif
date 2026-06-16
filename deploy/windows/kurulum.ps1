@@ -8,6 +8,12 @@
 # ============================================================
 $ErrorActionPreference = "Stop"
 
+# TLS 1.2'yi etkinlestir — Windows Server'da python.org/postgres indirmesi
+# "SSL/TLS guvenli kanali olusturulamadi" hatasi vermesin.
+try {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+} catch { }
+
 # ---- Ayarlar (gerekirse degistir) ----
 $Port        = 8000
 $DbName      = "perpak_teklif"

@@ -81,9 +81,15 @@ class OlukluKalite(Base):
 
 
 class BaskiTuru(Base):
+    """Ofset baskı makinesi tanımı. (Eski adı 'baskı türü'.)"""
     __tablename__ = "baski_turu"
-    kod: Mapped[str] = mapped_column(String(30), primary_key=True)  # ROLAND_700, FLEKSO...
+    kod: Mapped[str] = mapped_column(String(30), primary_key=True)  # ROLAND_700, ROLAND_800...
     ad: Mapped[str] = mapped_column(String(60), nullable=False)
+    # DAHILI (kendi makinemiz) | FASON (dış matbaa) — sadece bilgi amaçlı
+    tip: Mapped[str] = mapped_column(String(10), default="DAHILI", server_default="DAHILI", nullable=False)
+    # Makine bazlı varsayılanlar — teklifte otomatik dolar, orada düzenlenebilir (formül aynı kalır)
+    baski_kalip_tl: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
+    gecis_carpan: Mapped[Decimal] = mapped_column(Numeric(6, 3), default=0, server_default="0", nullable=False)
     aktif: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -99,6 +105,8 @@ class BaskiSonrasi(Base):
     __tablename__ = "baski_sonrasi_islem"
     kod: Mapped[str] = mapped_column(String(40), primary_key=True)
     ad: Mapped[str] = mapped_column(String(80), nullable=False)
+    # Master sabit fiyat (TL/m²) — teklifte otomatik dolar, orada düzenlenebilir.
+    tl_m2: Mapped[Decimal] = mapped_column(Numeric(8, 3), default=0, server_default="0", nullable=False)
     aktif: Mapped[bool] = mapped_column(Boolean, default=True)
 
 

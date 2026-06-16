@@ -76,7 +76,12 @@ Maliyetin üstüne eklenen yüzde. **0,20** = %20 kâr. Sisteme **0,20** olarak 
 
 ### Birim Fiyat Tablosu (HESAPLAMA VERİ DOSYASI)
 
-Tüm sabit fiyatlar (lak m², kesim TL, yapıştırma TL/adet vs.) **tek bir tablodadır**. Kağıt zammı geldiğinde **yöneticinin "Fiyatlar" sayfasından** sadece bu sayıları güncellemesi yeterlidir. Eski teklifler etkilenmez — yeni teklifler güncel fiyatlarla hesaplanır.
+Sabit fiyatların çoğu (lak m², kesim TL, yapıştırma TL/adet vs.) **tek bir tablodadır**. Kağıt zammı geldiğinde **yöneticinin "Fiyatlar" sayfasından** sadece bu sayıları güncellemesi yeterlidir. Eski teklifler etkilenmez — yeni teklifler güncel fiyatlarla hesaplanır.
+
+> **Güncel düzen — nereden geliyor?**
+> - **Baskı Kalıp TL** ve **Geçiş Çarpanı** artık genel fiyat tablosunda değil, **makine bazlıdır**: yönetici **Tanımlar → Baskı Makineleri**'nden tanımlar; teklifte makine seçilince otomatik dolar.
+> - **İlave işlem fiyatları** (Lak, Sıvama, Selefon vb.) merkezi **Fiyatlar → İlave İşlem Fiyatları**'nda tutulur; teklifte işlem işaretlenince fiyat otomatik gelir (elle değiştirilebilir).
+> - Formül matematiği değişmedi — değişen yalnızca bazı girdi değerlerinin **nereden geldiği**.
 
 ---
 
@@ -107,17 +112,17 @@ Form size şunları soracak:
 - **Oluklu Cinsi + Oluklu TL/m²** — çift duvarlı yapıyorsanız seçip fiyat yazın (yoksa boş). *(Eski "Ondüle TL/m²" yerine.)*
 
 #### Baskı
-- **Baskı Türü** (Roland 700 / 800)
+- **Baskı Makinesi** (Dahili / Fason) — Roland 700, Roland 800 vb. (Tanımlar → Baskı Makineleri'nde yönetilir). Dahili/Fason **yalnız bilgidir, fiyatı etkilemez.** Makine seçilince **Baskı Kalıp TL** ve **Geçiş Çarpanı** o makinenin tanımından **otomatik dolar** (teklifte yine elle değiştirilebilir).
 - **Renk Sayısı** (1–6)
 - **Renk Seçimi** — renk sayısı kadar rengi paletten seç (CMYK 4 renkte otomatik)
-- **Baskı Kalıp TL** — kalıp ücreti **burada** girilir (Sevkiyat'ta ayrıca yok)
+- **Baskı Kalıp TL** — *makine seçilince otomatik gelir* (Sevkiyat'ta ayrıca yok); gerekiyorsa düzenlenir
 - **Boya TL** — özel mürekkep masrafı varsa
-- **Geçiş Çarpanı** *(boş → renk sayısına göre otomatik)* ve **Ek Geçiş Adedi** *(otomatik, 3000 üstü)*
+- **Geçiş Çarpanı** *(makineden otomatik gelir, elle değiştirilebilir)* ve **Ek Geçiş Adedi** *(otomatik, 3000 üstü)*
 - **Baskı Adedi** *(otomatik = tabaka adedi)*
 
 #### Kesim, Yapıştırma & İlave İşlemler
 - **Kesim TL (tabaka başına)** ve **Yapıştırma TL/adet** — girmediğiniz işlem 0 sayılır
-- **Lak / Sıvama vb.** — işaretleyip yanına **TL/m²** fiyatını elle yaz (müdahaleye açık)
+- **Lak / Sıvama vb.** — işaretleyince fiyat **merkezi listeden (Fiyatlar → İlave İşlem Fiyatları) otomatik gelir**; gerekiyorsa üzerine yazıp değiştirebilirsiniz
 - **Eklenti** — Kilitli, Yapıştırma veya Dikiş
 
 #### Sevkiyat ve Diğer
@@ -578,18 +583,19 @@ Mevcut Excel'de proforma **sınırlı bir kopyala/yapıştır** mantığıyla ç
 
 Bu sayfa **formül içermez**, sadece **sabit veri** tutar. Yukarıdaki tüm hesaplar bu sayfadaki sayıları VLOOKUP veya manuel kopyalama ile çeker.
 
-#### OFSET Bölümü (Gramaja Göre Baskı TL)
+#### OFSET Baskı Kalıp TL — artık MAKİNE bazlı (gramaja göre değil)
 
-| Gramaj | Baskı TL | Açıklama |
-|---|---|---|
-| 180 | 1.300 | Ofset baskı kalıp fiyat tablosu — gramaja göre değişir. |
-| 200 | 1.450 | |
-| 210 | 2.000 | |
-| 230, 250, 300, 350, 400 | 2.500 | |
+> ⚠️ **Bu eski "Gramaja Göre Baskı TL" tablosu artık geçerli değildir.** Önceden ofset baskı kalıp ücreti gramaja göre bir tablodan (180→1.300, 200→1.450 …) çekiliyordu. Yeni düzende **Baskı Kalıp TL makine bazlıdır** — yöneticinin **Tanımlar → Baskı Makineleri**'nde her makine için tanımladığı değerden gelir (örn. Roland 700 → 1.450, Roland 800 → 2.000) ve teklifte makine seçilince otomatik dolar.
+>
+> **Gramaj** ise artık yalnızca bir **liste/tanımdır** (Fiyatlar → "Gramajlar (Ofset)"): karton hesabında kullanılan gramaj değerini seçtirir, ona bağlı bir "baskı TL" tablosu yoktur.
+>
+> **Formül matematiği değişmedi:** `L13` (karton) gramajı yine `(EN×BOY×Gramaj×TL/m²)/1.000.000.000` içinde kullanır; `L15` (baskı) ise `P6 = Baskı Kalıp TL`'yi makineden alır.
 
-#### Geçiş Çarpanı (Renk Sayısına Göre)
+#### Geçiş Çarpanı — artık MAKİNE bazlı (renk tablosu yedek)
 
-| Renk Sayısı | Çarpan | Açıklama |
+Geçiş çarpanı (`L15` formülündeki **P9**) artık öncelikle **seçilen makinenin tanımından** gelir (Tanımlar → Baskı Makineleri). Aşağıdaki **renk sayısı bazlı tablo backend'de yalnızca yedek (fallback)** olarak durur:
+
+| Renk Sayısı | Çarpan (yedek) | Açıklama |
 |---|---|---|
 | 1 | 0,00 | Tek renkte ek geçiş yok |
 | 2 | 0,35 | 3000'in üstündeki ek geçişin çarpanı |
@@ -598,7 +604,7 @@ Bu sayfa **formül içermez**, sadece **sabit veri** tutar. Yukarıdaki tüm hes
 | 5 | 0,55 | |
 | 6 | 0,55 | |
 
-> Yukarıda KUTU OFSET'in `L15 = ((P6*P7)+(P8*P9)*P7+P10)/P11` formülündeki **P9** işte bu çarpan. Renk sayısına göre 0–0,55 arası bir değer.
+> **Önemli — renk sayısının etkisi sürüyor:** Çarpanın kaynağı değişse de, **renk sayısı formülde doğrudan çarpan olarak kalır**. `L15 = ((P6*P7) + (P8*P9)*P7 + P10) / P11` formülünde **P7 = renk sayısı** hem kalıp terimini (`P6*P7`) hem de ek geçiş terimini (`(P8*P9)*P7`) doğrudan çarpar. Yani renk sayısı arttıkça baskı maliyeti birebir artar — bu davranış **değişmedi**. Değişen tek şey **P9 (geçiş çarpanı)** değerinin artık makineden gelmesidir.
 
 #### Diğer Birim Fiyatlar (Tek Satır)
 
@@ -608,10 +614,26 @@ Bu sayfa **formül içermez**, sadece **sabit veri** tutar. Yukarıdaki tüm hes
 - **Yapıştırma (Ofset):** 0,85 TL/adet → V11.
 - **Flekso Baskı+Kesim:** 4,00 TL → R23.
 - **Flekso Kesim:** 2,25 TL → S23.
-- **Flekso Yapıştırma:** 0,85 TL/adet → T23.
+- **Flekso Yapıştırma:** 1,25 TL/adet → T23.
 - **Koli Dikiş:** 2,25 TL/dikiş → KOLİ N7–N10.
 
-> 💡 **Yeni sistemde:** Yöneticinin **Fiyatlar** sayfasından (sol menü) bu sayılar tek tek güncellenir. Excel'de elle her sayfaya kopya yapmak yerine, **tek yerden** değişir, tüm yeni teklifler otomatik güncel fiyatla çalışır.
+#### İlave İşlem Fiyatları — Merkezi (Fiyatlar → İlave İşlem Fiyatları)
+
+Lak / Sıvama / Selefon gibi ilave işlemlerin TL/m² fiyatları artık **merkezî olarak** tutulur. Teklifte bir işlem **işaretlenince fiyatı buradan otomatik dolar** (elle değiştirilebilir; girilen değer siparişe de taşınır). Varsayılan değerler:
+
+| İşlem | TL/m² |
+|---|---|
+| Lak | 2,20 |
+| Sıvama | 2,85 |
+| Dispersiyon Lak | 2,20 |
+| UV Lak | 3,30 |
+| Parlak Selefon | 3,80 |
+| Mat Selefon | 3,95 |
+| Highloss | 2,85 |
+
+> Kısmi Lak, Termo Lak, Gofre, Asetat, Selefon + Pencere Kesim, Kuş Gözü gibi diğer işlemler varsayılan **0** gelir; gerekirse **Fiyatlar** ekranından değer girilir.
+
+> 💡 **Yeni sistemde:** Yöneticinin **Fiyatlar** sayfasından (sol menü → Tanımlar) bu sayılar tek tek güncellenir. Excel'de elle her sayfaya kopya yapmak yerine, **tek yerden** değişir, tüm yeni teklifler otomatik güncel fiyatla çalışır. (Baskı Kalıp TL ve Geçiş Çarpanı ise makine bazlıdır — Baskı Makineleri tanımından gelir.)
 
 ---
 
@@ -622,14 +644,14 @@ Bu sayfalar **dropdown veri kaynağı**. Excel'de "Veri Doğrulama" özelliği i
 - **Karton Cinsi:** Kroma, Kuşesiz Kroma, Bristol, BT Liner, Kraft
 - **Gramaj:** 160, 180, …, 450
 - **Oluklu Kalite:** B120/S080/T090 - B gibi 60+ kompozit kod
-- **Baskı Türü:** Roland 700, Roland 800, Flekso, Baskısız
+- **Baskı Makinesi (ofset):** Roland 700, Roland 800 … (Tanımlar → Baskı Makineleri'nde yönetilir; her makine Dahili/Fason tipi + Baskı Kalıp TL + Geçiş Çarpanı taşır). Flekso/Koli kendi baskı durumlarını kullanır.
 - **Renk:** CMYK, Siyah, 18 spot renk
 - **Baskı Sonrası:** Dispersiyon Lak, UV Lak, Mat Selefon, Parlak Selefon, Highloss, Gofre, Asetat, Kısmi Lak, Termo Lak, vs.
 - **Eklenti:** Kilitli, Yapıştırma, Dikiş
 - **Ambalaj:** Shrinkli/Shrinksiz × Paletli/Dökme kombinasyonları
 - **Grafik Durumu:** Kalıp Var, Yeni Çalışma, PDF Var, Klişesi Var, vs.
 
-> Yeni sistem bu listeleri **master tablolardan** alır ve dropdown'ları besler. Yeni bir karton tipi gelirse: **Yönetici** ekler → sistemin tüm kullanıcıları anında yeni seçeneği görür. Excel'de tüm 12 sayfada elle eklemek gerekiyordu.
+> Yeni sistem bu listeleri **master tablolardan** alır ve dropdown'ları besler. Yeni bir karton tipi gelirse: **Yönetici** ekler → sistemin tüm kullanıcıları anında yeni seçeneği görür. Excel'de tüm 12 sayfada elle eklemek gerekiyordu. **Karton Malzeme Cinsi** ve **Oluklu Cinsi** listeleri artık doğrudan **Tanımlar** menüsünden (ekle/düzenle/kaldır) yönetilir; oluklu kodu sabittir (değiştirmek için kaldırıp yeniden eklenir).
 
 ---
 
@@ -676,6 +698,6 @@ Excel'de **23 ayrı formül hücresi** vardı (KUTU 1: 13, KOLİ 1: 4, PROFORMA:
 
 ---
 
-**Son güncelleme:** 2026-05-22
+**Son güncelleme:** 2026-06-16
 **Sürüm:** 0.1.0
 **Belge sahibi:** PERPAK Ambalaj San. Tic. Ltd. Şti.

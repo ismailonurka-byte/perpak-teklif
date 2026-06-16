@@ -38,12 +38,12 @@ export default function Modal({ open, onClose, title, children, size = "md", foo
   // Portal ile doğrudan body'ye render — sayfa sarmalayıcısındaki transform
   // (animate-fade-in) "position: fixed"i bozmasın, modal hep viewport'a göre ortalansın.
   return createPortal(
+    // Arka plana (boşluğa) tıklayınca KAPANMAZ — yalnızca X veya İptal ile kapanır.
+    // (Form doldururken yanlışlıkla dışarı tıklayıp veri kaybetmeyi önler.)
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4 animate-fade-in"
-      onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
         className={`relative w-full ${sizes[size]} max-h-[95vh] sm:max-h-[90vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-elevated ring-1 ring-slate-200/60 flex flex-col animate-slide-up sm:animate-scale-in`}
       >
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">

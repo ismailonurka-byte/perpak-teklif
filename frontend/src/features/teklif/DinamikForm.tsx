@@ -241,14 +241,16 @@ function FieldRenderer({
     const birim = alan.birim || "TL"; // OFSET: TL/m², KOLİ: TL (koli başına)
     // Şemadaki "ekstra" satırlar (örn. Yapıştırma TL/adet) listeye eklenir
     const ekstra: { kod: string; ad: string; birim?: string }[] = alan.ekstra || [];
-    const tum: { kod: string; ad: string; birim?: string }[] = [...master.baski_sonrasi_islem, ...ekstra];
-    // Fiyat listesinden otomatik default (müdahaleye açık) — Lak, Sıvama, Yapıştırma
+    const tum: { kod: string; ad: string; birim?: string; tl_m2?: number }[] = [...master.baski_sonrasi_islem, ...ekstra];
+    // Otomatik default fiyat (müdahaleye açık):
+    //  - Baskı sonrası işlemler → master sabit fiyatı (tl_m2) — Fiyatlar ekranından yönetilir
+    //  - Ekstra Yapıştırma → birim_fiyat.yapistirma_tl_ad
     const bf = master.birim_fiyat || {};
     const OTO_FIYAT: Record<string, number> = {
-      LAK: bf.lak_tl_m2 ?? 0,
-      SIVAMA: bf.sivama_tl_m2 ?? 0,
       YAPISTIRMA: bf.yapistirma_tl_ad ?? 0,
     };
+    const defaultFiyat = (islem: { kod: string; tl_m2?: number }) =>
+      (islem.tl_m2 ?? OTO_FIYAT[islem.kod]) ?? 0;
     // Custom: değer = { kod: fiyat, ... }
     const detay: Record<string, number> = (value && typeof value === "object") ? value : {};
     return (
@@ -266,8 +268,8 @@ function FieldRenderer({
                     checked={aktif}
                     onChange={(e) => {
                       const yeni = { ...detay };
-                      // İşaretlenince fiyatı listeden otomatik gelir (Lak/Sıvama/Yapıştırma); sonra elle değiştirilebilir
-                      if (e.target.checked) yeni[islem.kod] = OTO_FIYAT[islem.kod] ?? 0;
+                      // İşaretlenince master sabit fiyatı otomatik gelir; sonra elle değiştirilebilir
+                      if (e.target.checked) yeni[islem.kod] = defaultFiyat(islem);
                       else delete yeni[islem.kod];
                       onChange(yeni);
                     }}
@@ -361,7 +363,10 @@ function getKaynak(kaynak: string, master: MasterData): { kod: string; ad: strin
     case "karton_cinsi": return master.karton_cinsi;
     case "gramaj": return master.gramaj.map((g) => ({ kod: String(g.deger), ad: `${g.deger} g/m²` }));
     case "oluklu_kalite": return master.oluklu_kalite.map((o) => ({ kod: o.kod, ad: o.kod }));
-    case "baski_turu": return master.baski_turu;
+    case "baski_turu": return master.baski_turu.map((m) => ({
+      kod: m.kod,
+      ad: `${m.ad} — ${m.tip === "FASON" ? "Fason" : "Dahili"}`,
+    }));
     case "renk": return master.renk;
     case "baski_sonrasi_islem": return master.baski_sonrasi_islem;
     case "eklenti": return master.eklenti;

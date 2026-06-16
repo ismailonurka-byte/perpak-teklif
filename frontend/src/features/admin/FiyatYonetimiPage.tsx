@@ -102,6 +102,22 @@ export default function FiyatYonetimiPage() {
     },
   });
 
+  // ─── İLAVE İŞLEM FİYATLARI (Lak, Sıvama, Selefon ...) ───────────
+  const { data: ilave = [] } = useQuery<{ kod: string; ad: string; tl_m2: number }[]>({
+    queryKey: ["fiyat-ilave"],
+    queryFn: async () => (await api.get("/fiyat/ilave-islem")).data,
+  });
+  const ilaveKaydet = useMutation({
+    mutationFn: async ({ kod, tl_m2 }: { kod: string; tl_m2: number }) =>
+      (await api.put(`/fiyat/ilave-islem/${kod}`, null, { params: { tl_m2 } })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fiyat-ilave"] });
+      qc.invalidateQueries({ queryKey: ["master-all"] });
+      toast("ok", "Kaydedildi");
+    },
+    onError: (e: any) => toast("err", e?.response?.data?.detail ?? "Hata"),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -160,29 +176,35 @@ export default function FiyatYonetimiPage() {
         )}
       </div>
 
-      {/* OFSET BASKI TL — GRAMAJ TABLOSU */}
+      {/* GRAMAJLAR (OFSET) — Baskı TL artık makine tanımında */}
       <div className="card">
-        <h2 className="text-lg font-semibold mb-2">Ofset Baskı TL — Gramaj Bazında</h2>
+        <h2 className="text-lg font-semibold mb-2">Gramajlar (Ofset)</h2>
         <p className="text-sm text-slate-500 mb-4">
-          Her gramaj için baskı kalıp + sabit maliyet. (Excel: HESAPLAMA VERİ DOSYASI B sütunu)
+          Ofset kutuda kullanılan gramaj tanımları. <b>Baskı TL artık burada değil</b> — makine bazında,
+          <b> Baskı Makineleri</b> ekranından gelir.
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
               <tr>
                 <th className="text-left px-3 py-2">Gramaj (g/m²)</th>
-                <th className="text-left px-3 py-2">Baskı TL</th>
                 <th className="w-32"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {ofset.map((r) => (
-                <OfsetRow
-                  key={r.gramaj}
-                  baslangic={r}
-                  kaydet={(tl) => ofsetKaydet.mutate({ gramaj: r.gramaj, baski_tl: tl })}
-                  sil={() => setSilOnayOfset(r.gramaj)}
-                />
+                <tr key={r.gramaj}>
+                  <td className="px-3 py-2 font-medium">{r.gramaj}</td>
+                  <td className="px-3 py-2">
+                    <button
+                      onClick={() => setSilOnayOfset(r.gramaj)}
+                      className="text-slate-400 hover:text-rose-600 px-2"
+                      title="Sil"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
               ))}
               <tr className="bg-slate-50">
                 <td className="px-3 py-2">
@@ -195,26 +217,12 @@ export default function FiyatYonetimiPage() {
                   />
                 </td>
                 <td className="px-3 py-2">
-                  <input
-                    className="input"
-                    type="number"
-                    step="any"
-                    placeholder="örn: 2750"
-                    value={yeniGramajTL}
-                    onChange={(e) => setYeniGramajTL(e.target.value)}
-                  />
-                </td>
-                <td className="px-3 py-2">
                   <button
                     className="btn-primary w-full"
-                    disabled={!yeniGramaj || !yeniGramajTL}
+                    disabled={!yeniGramaj}
                     onClick={() => {
-                      ofsetKaydet.mutate({
-                        gramaj: Number(yeniGramaj),
-                        baski_tl: Number(yeniGramajTL),
-                      });
+                      ofsetKaydet.mutate({ gramaj: Number(yeniGramaj), baski_tl: 0 });
                       setYeniGramaj("");
-                      setYeniGramajTL("");
                     }}
                   >
                     <Plus size={14} className="mr-1" /> Ekle
@@ -247,6 +255,34 @@ export default function FiyatYonetimiPage() {
                   key={r.renk_sayisi}
                   baslangic={r}
                   kaydet={(c) => carpanKaydet.mutate({ renk_sayisi: r.renk_sayisi, carpan: c })}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* İLAVE İŞLEM FİYATLARI — Lak / Sıvama / Selefon ... (tümü) */}
+      <div className="card">
+        <h2 className="text-lg font-semibold mb-2">İlave İşlem Fiyatları</h2>
+        <p className="text-sm text-slate-500 mb-4">
+          TL / m². Teklifte ilgili işlem işaretlenince bu fiyat otomatik gelir; teklifte yine değiştirilebilir.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
+              <tr>
+                <th className="text-left px-3 py-2">İşlem</th>
+                <th className="text-left px-3 py-2">TL / m²</th>
+                <th className="w-32"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {ilave.map((r) => (
+                <IlaveRow
+                  key={r.kod}
+                  baslangic={r}
+                  kaydet={(tl) => ilaveKaydet.mutate({ kod: r.kod, tl_m2: tl })}
                 />
               ))}
             </tbody>
@@ -298,6 +334,40 @@ function OfsetRow({
         </button>
         <button onClick={sil} className="text-slate-400 hover:text-rose-600 px-2">
           <Trash2 size={16} />
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function IlaveRow({
+  baslangic, kaydet,
+}: {
+  baslangic: { kod: string; ad: string; tl_m2: number };
+  kaydet: (tl: number) => void;
+}) {
+  const [val, setVal] = useState(String(baslangic.tl_m2));
+  useEffect(() => setVal(String(baslangic.tl_m2)), [baslangic.tl_m2]);
+  const degisti = Number(val) !== Number(baslangic.tl_m2);
+  return (
+    <tr>
+      <td className="px-3 py-2 font-medium">{baslangic.ad}</td>
+      <td className="px-3 py-2">
+        <input
+          className="input"
+          type="number"
+          step="0.001"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+        />
+      </td>
+      <td className="px-3 py-2">
+        <button
+          className={`btn ${degisti ? "btn-primary" : "btn-ghost border border-slate-200"} w-full`}
+          disabled={!degisti}
+          onClick={() => kaydet(Number(val))}
+        >
+          <Save size={14} className="mr-1" /> Kaydet
         </button>
       </td>
     </tr>

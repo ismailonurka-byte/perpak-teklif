@@ -11,6 +11,9 @@ import KanbanPage from "@/features/teklif/KanbanPage";
 import MusteriListPage from "@/features/musteri/MusteriListPage";
 import AyarlarPage from "@/features/admin/AyarlarPage";
 import FiyatYonetimiPage from "@/features/admin/FiyatYonetimiPage";
+import MakineTanimPage from "@/features/admin/MakineTanimPage";
+import KartonTanimPage from "@/features/admin/KartonTanimPage";
+import OlukluTanimPage from "@/features/admin/OlukluTanimPage";
 import RaporlarPage from "@/features/rapor/RaporlarPage";
 import { ToastContainer } from "@/components/ui/Toast";
 import Layout from "./Layout";
@@ -59,6 +62,9 @@ export default function App() {
           <Route path="kullanicilar" element={<Navigate to="/ayarlar" replace />} />
           <Route path="roller" element={<Navigate to="/ayarlar" replace />} />
           <Route path="fiyatlar" element={<RequirePermission izin="fiyat.read"><FiyatYonetimiPage /></RequirePermission>} />
+          <Route path="baski-makineleri" element={<RequirePermission izin="master.read"><MakineTanimPage /></RequirePermission>} />
+          <Route path="karton-cinsi" element={<RequirePermission izin="master.read"><KartonTanimPage /></RequirePermission>} />
+          <Route path="oluklu-cinsi" element={<RequirePermission izin="master.read"><OlukluTanimPage /></RequirePermission>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
