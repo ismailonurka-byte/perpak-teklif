@@ -1,6 +1,7 @@
 /**
  * Birim Fiyat Yönetimi — Excel'deki "HESAPLAMA VERİ DOSYASI" karşılığı.
- * 3 bölüm: Genel fiyatlar, OFSET baskı (gramaja göre), Geçiş çarpanı (renge göre).
+ * Bölümler: Genel fiyatlar, Gramajlar (Ofset), İlave işlem fiyatları.
+ * (Geçiş çarpanı renk sayısına göre değişmediği için o bölüm kaldırıldı — çarpan makine tanımından gelir.)
  *
  * Buradaki değerler değişince yeni teklifler bu fiyatlarla hesaplar.
  * Eski teklifler kendi snapshot'ında kalır.
@@ -87,20 +88,9 @@ export default function FiyatYonetimiPage() {
     },
   });
 
-  // ─── ÇARPAN (renk → çarpan) ─────────────────────────────────────
-  const { data: carpan = [] } = useQuery<{ renk_sayisi: number; carpan: number }[]>({
-    queryKey: ["fiyat-carpan"],
-    queryFn: async () => (await api.get("/fiyat/carpan")).data,
-  });
-
-  const carpanKaydet = useMutation({
-    mutationFn: async ({ renk_sayisi, carpan: c }: { renk_sayisi: number; carpan: number }) =>
-      (await api.put(`/fiyat/carpan/${renk_sayisi}`, null, { params: { carpan: c } })).data,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fiyat-carpan"] });
-      toast("ok", "Kaydedildi");
-    },
-  });
+  // NOT: "Geçiş Çarpanı — Renk Sayısı Bazında" bölümü kaldırıldı.
+  // Geçiş çarpanı renk sayısına göre değişmez; teklifte makine tanımından gelir.
+  // (Backend renk-bazlı fallback dokunulmadı → eski/yeni hesap sonuçları aynı.)
 
   // ─── İLAVE İŞLEM FİYATLARI (Lak, Sıvama, Selefon ...) ───────────
   const { data: ilave = [] } = useQuery<{ kod: string; ad: string; tl_m2: number }[]>({
@@ -234,34 +224,6 @@ export default function FiyatYonetimiPage() {
         </div>
       </div>
 
-      {/* GEÇİŞ ÇARPANI — RENK TABLOSU */}
-      <div className="card">
-        <h2 className="text-lg font-semibold mb-2">Geçiş Çarpanı — Renk Sayısı Bazında</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          3000 baskı adedinin üstünde her ek geçiş için kullanılır.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
-              <tr>
-                <th className="text-left px-3 py-2">Renk Sayısı</th>
-                <th className="text-left px-3 py-2">Çarpan</th>
-                <th className="w-32"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {carpan.map((r) => (
-                <CarpanRow
-                  key={r.renk_sayisi}
-                  baslangic={r}
-                  kaydet={(c) => carpanKaydet.mutate({ renk_sayisi: r.renk_sayisi, carpan: c })}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {/* İLAVE İŞLEM FİYATLARI — Lak / Sıvama / Selefon ... (tümü) */}
       <div className="card">
         <h2 className="text-lg font-semibold mb-2">İlave İşlem Fiyatları</h2>
@@ -374,36 +336,3 @@ function IlaveRow({
   );
 }
 
-function CarpanRow({
-  baslangic, kaydet,
-}: {
-  baslangic: { renk_sayisi: number; carpan: number };
-  kaydet: (c: number) => void;
-}) {
-  const [val, setVal] = useState(String(baslangic.carpan));
-  useEffect(() => setVal(String(baslangic.carpan)), [baslangic.carpan]);
-  const degisti = Number(val) !== Number(baslangic.carpan);
-  return (
-    <tr>
-      <td className="px-3 py-2 font-medium">{baslangic.renk_sayisi} renk</td>
-      <td className="px-3 py-2">
-        <input
-          className="input"
-          type="number"
-          step="0.001"
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
-        />
-      </td>
-      <td className="px-3 py-2">
-        <button
-          className={`btn ${degisti ? "btn-primary" : "btn-ghost border border-slate-200"} w-full`}
-          disabled={!degisti}
-          onClick={() => kaydet(Number(val))}
-        >
-          <Save size={14} className="mr-1" /> Kaydet
-        </button>
-      </td>
-    </tr>
-  );
-}
