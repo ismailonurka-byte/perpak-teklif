@@ -55,12 +55,42 @@ $PgSuperPass = $PgSuperPass.Trim(); $DbPass = $DbPass.Trim()
 # ============================================================
 Step "Python 3.12 kontrol"
 $PyExe = $null
-foreach ($p in @("$env:ProgramFiles\Python312\python.exe", "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe")) {
+
+# 1) Bilinen kurulum yollari (en guvenilir — PATH/Store karmasasina takilmaz)
+foreach ($p in @(
+    "$env:ProgramFiles\Python312\python.exe",
+    "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe",
+    "$env:ProgramFiles\Python313\python.exe",
+    "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe"
+)) {
   if (Test-Path $p) { $PyExe = $p; break }
 }
-if (-not $PyExe -and (Get-Command python -ErrorAction SilentlyContinue)) {
-  $v = (& python --version) 2>&1
-  if ($v -match "3\.12") { $PyExe = (Get-Command python).Source }
+
+# 2) 'py' launcher (Windows) — Microsoft Store sahte stub'una TAKILMAZ
+if (-not $PyExe -and (Get-Command py -ErrorAction SilentlyContinue)) {
+  foreach ($arg in @("-3.12", "-3")) {
+    try {
+      $src = (& py $arg -c "import sys; print(sys.executable)" 2>$null)
+      if ($LASTEXITCODE -eq 0 -and $src -and (Test-Path $src)) {
+        $ver = (& $src --version 2>&1)
+        if ($ver -match "3\.1[2-9]") { $PyExe = $src; break }
+      }
+    } catch { }   # py o surumu bulamazsa sessizce gec
+  }
+}
+
+# 3) PATH'teki python.exe — AMA Microsoft Store "App Execution Alias" stub'unu ATLA
+#    (WindowsApps altindaki 0-byte stub calistirilinca "Sistem dosyaya erisemiyor" verir)
+if (-not $PyExe) {
+  $pyCmd = Get-Command python.exe -All -ErrorAction SilentlyContinue |
+           Where-Object { $_.Source -and $_.Source -notlike "*\WindowsApps\*" } |
+           Select-Object -First 1
+  if ($pyCmd) {
+    try {
+      $ver = (& $pyCmd.Source --version 2>&1)
+      if ($ver -match "3\.1[2-9]") { $PyExe = $pyCmd.Source }
+    } catch { }
+  }
 }
 if (-not $PyExe) {
   Info "Python yok, indiriliyor..."
