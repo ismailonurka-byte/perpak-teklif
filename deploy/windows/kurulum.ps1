@@ -123,9 +123,25 @@ if (-not (Test-Path $Psql)) {
 if (-not (Test-Path $Psql)) { throw "PostgreSQL kurulamadi. Elle kurup tekrar deneyin: $PgUrl" }
 Ok "PostgreSQL: $PgBin"
 
-# Servis calisiyor mu?
-$svc = Get-Service "postgresql-$PgVer*" -ErrorAction SilentlyContinue
-if ($svc -and $svc.Status -ne "Running") { Start-Service $svc.Name; Start-Sleep 3 }
+# Servisi bul ve baslat — EDB ismi "postgresql-16" ya da "postgresql-x64-16" olabilir
+$svc = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($svc -and $svc.Status -ne "Running") {
+  try { Start-Service $svc.Name -ErrorAction Stop } catch { Info "Servis baslatilamadi: $($_.Exception.Message)" }
+}
+
+# 5432 gercekten yanit verene kadar bekle (kurulum bittiyse bile servis gec acilabilir)
+$pgReady = Join-Path $PgBin "pg_isready.exe"
+$pgUp = $false
+for ($i = 0; $i -lt 30; $i++) {
+  if (Test-Path $pgReady) {
+    & $pgReady -h localhost -p 5432 -q 2>$null
+    if ($LASTEXITCODE -eq 0) { $pgUp = $true; break }
+  }
+  Start-Sleep 2
+}
+if (-not $pgUp) {
+  throw "PostgreSQL servisi 5432'de yanit vermiyor. Servisi elle baslatip tekrar deneyin: services.msc > '$($svc.Name)'  (ya da: net start $($svc.Name))"
+}
 
 # ============================================================
 # 3) VERITABANI + KULLANICI (idempotent)
